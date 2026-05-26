@@ -1,0 +1,8 @@
+#!/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/backend/.venv311/bin/python3.11
+# -*- coding: utf-8 -*-
+import re
+import sys
+from pip._internal.cli.main import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())

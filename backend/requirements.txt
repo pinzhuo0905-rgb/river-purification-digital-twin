@@ -1,0 +1,17 @@
+# ── Web 框架 ──
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# ── 数据库 ──
+sqlalchemy==2.0.36
+aiosqlite==0.20.0
+greenlet==3.5.1
+
+# ── 科学计算 ──
+numpy==2.2.2
+
+# ── WebSocket ──
+python-socketio==5.12.1
+
+# ── 数据验证 ──
+pydantic==2.10.4

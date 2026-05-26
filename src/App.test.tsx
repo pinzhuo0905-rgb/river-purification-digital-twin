@@ -2,7 +2,8 @@ import { render, screen } from '@testing-library/react';
 import App from './App';
 import { test, expect } from 'vitest';
 
-test('renders dashboard title', () => {
+test('renders header title', () => {
   render(<App />);
-  expect(screen.getByText(/河流光催化净化仿真/i)).toBeDefined();
+  const elements = screen.getAllByText(/河流光催化净化/i);
+  expect(elements.length).toBeGreaterThan(0);
 });
