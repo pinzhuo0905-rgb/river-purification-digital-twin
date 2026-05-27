@@ -109,6 +109,160 @@ function gridSearchBestNewPoint(
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  Nelder-Mead 单纯形精修
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * 对 N 个投药点的连续参数做 Nelder-Mead 优化。
+ *
+ * 每个投药点有 4 个参数: [segmentIndex, positionRatio, activity, doseRatio]。
+ * segmentIndex 在评估时四舍五入到最近整数并钳位到 [0, M-1]。
+ *
+ * @returns 精修后的投药点数组
+ */
+function nelderMeadRefine(
+  params: SimulationParamsV3,
+  initial: DosingPoint[],
+  maxIter: number = 200,
+  tolerance: number = 1e-4,
+): DosingPoint[] {
+  if (initial.length === 0) return [];
+
+  const M = params.segments.length;
+  const N = initial.length;
+  const dim = N * 4; // 每个点 4 个参数
+
+  // 将 DosingPoint[] 展平为向量，segmentIndex 归一化到 [0, 1)
+  function pack(pts: DosingPoint[]): number[] {
+    const v: number[] = [];
+    for (const p of pts) {
+      v.push(p.segmentIndex / Math.max(1, M - 1)); // 归一化到 [0, 1]
+      v.push(p.positionRatio);
+      v.push(p.activity);
+      v.push(p.doseRatio / 10); // 归一化到 [0, 1]
+    }
+    return v;
+  }
+
+  // 将向量解包为 DosingPoint[]，钳位到合法范围
+  function unpack(v: number[]): DosingPoint[] {
+    const pts: DosingPoint[] = [];
+    for (let i = 0; i < N; i++) {
+      const base = i * 4;
+      const segIdx = clamp(Math.round(v[base] * (M - 1)), 0, M - 1);
+      pts.push({
+        segmentIndex: segIdx,
+        positionRatio: clamp(v[base + 1], 0, 1),
+        activity: clamp(v[base + 2], 0.01, 1),
+        doseRatio: clamp(v[base + 3] * 10, 0.01, 10),
+      });
+    }
+    return pts;
+  }
+
+  function objVec(v: number[]): number {
+    const pts = unpack(v);
+    const r = evaluate(params, pts);
+    return r.segmentOutConcentrations.slice(-1)[0] ?? 1;
+  }
+
+  // 标准 Nelder-Mead 常量
+  const alpha = 1.0; // 反射
+  const gamma = 2.0; // 扩张
+  const rho = 0.5; // 收缩
+  const sigma = 0.5; // 缩小
+
+  // 初始化单纯形：dim+1 个顶点
+  const vertices: number[][] = [];
+  vertices.push(pack(initial));
+  for (let i = 0; i < dim; i++) {
+    const v = pack(initial);
+    // 在维度 i 上加一个小扰动
+    v[i] = clamp(v[i] + 0.1 * (Math.random() - 0.5) * 2, 0, 1);
+    vertices.push(v);
+  }
+
+  // 评估所有顶点
+  const values: number[] = vertices.map(v => objVec(v));
+
+  for (let iter = 0; iter < maxIter; iter++) {
+    // 排序：按目标函数值升序（越小越好）
+    const indices = vertices.map((_, i) => i).sort((a, b) => values[a] - values[b]);
+    const sorted = indices.map(i => vertices[i]);
+    const sortedVals = indices.map(i => values[i]);
+
+    // 检查收敛：单纯形尺寸
+    const centroid = new Array(dim).fill(0);
+    for (let i = 0; i < dim; i++) {
+      for (let j = 0; j < dim; j++) centroid[i] += sorted[j][i];
+      centroid[i] /= dim;
+    }
+    let maxDist = 0;
+    for (let j = 0; j < dim; j++) {
+      let dist = 0;
+      for (let k = 0; k < dim; k++) dist += (sorted[j][k] - centroid[k]) ** 2;
+      maxDist = Math.max(maxDist, Math.sqrt(dist));
+    }
+    if (maxDist < tolerance) break;
+
+    // 反射
+    const worst = sorted[dim];
+    const reflection = new Array(dim).fill(0);
+    for (let i = 0; i < dim; i++) {
+      reflection[i] = centroid[i] + alpha * (centroid[i] - worst[i]);
+      reflection[i] = clamp(reflection[i], 0, 1);
+    }
+    const rVal = objVec(reflection);
+
+    if (rVal < sortedVals[0]) {
+      // 扩张
+      const expansion = new Array(dim).fill(0);
+      for (let i = 0; i < dim; i++) {
+        expansion[i] = centroid[i] + gamma * (reflection[i] - centroid[i]);
+        expansion[i] = clamp(expansion[i], 0, 1);
+      }
+      const eVal = objVec(expansion);
+      if (eVal < rVal) {
+        vertices[indices[dim]] = expansion;
+        values[indices[dim]] = eVal;
+      } else {
+        vertices[indices[dim]] = reflection;
+        values[indices[dim]] = rVal;
+      }
+    } else if (rVal < sortedVals[dim - 1]) {
+      vertices[indices[dim]] = reflection;
+      values[indices[dim]] = rVal;
+    } else {
+      // 收缩
+      const contract = new Array(dim).fill(0);
+      for (let i = 0; i < dim; i++) {
+        contract[i] = centroid[i] + rho * (worst[i] - centroid[i]);
+        contract[i] = clamp(contract[i], 0, 1);
+      }
+      const cVal = objVec(contract);
+      if (cVal < sortedVals[dim]) {
+        vertices[indices[dim]] = contract;
+        values[indices[dim]] = cVal;
+      } else {
+        // 缩小整个单纯形
+        const best = sorted[0];
+        for (let j = 1; j <= dim; j++) {
+          for (let k = 0; k < dim; k++) {
+            vertices[indices[j]][k] = best[k] + sigma * (vertices[indices[j]][k] - best[k]);
+            vertices[indices[j]][k] = clamp(vertices[indices[j]][k], 0, 1);
+          }
+          values[indices[j]] = objVec(vertices[indices[j]]);
+        }
+      }
+    }
+  }
+
+  // 返回最佳顶点
+  const bestIdx = values.indexOf(Math.min(...values));
+  return unpack(vertices[bestIdx]);
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  主函数：构建帕累托前沿
 // ═══════════════════════════════════════════════════════════════
 
@@ -130,8 +284,9 @@ export function optimizeDosing(request: OptimizationRequest): OptimizationResult
     // a. 网格搜索第 N 个最优增量点
     const newPoint = gridSearchBestNewPoint(params, prevBest, positionGridSize);
 
-    // b. 组合（Nelder-Mead 精修将在 Task 3 中添加，当前仅追加新点）
-    const refined = [...prevBest, newPoint];
+    // b. Nelder-Mead 精修全部 N 个点
+    const combined = [...prevBest, newPoint];
+    const refined = nelderMeadRefine(params, combined);
 
     // c. 评估
     const result = evaluate(params, refined);

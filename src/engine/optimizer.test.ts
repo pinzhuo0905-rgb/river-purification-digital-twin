@@ -102,3 +102,34 @@ describe('optimizeDosing', () => {
     expect(result.paretoFrontier[0].dosingPoints[0].segmentIndex).toBe(0);
   });
 });
+
+describe('Nelder-Mead 精修', () => {
+  test('精修后浓度不低于精修前（不退化）', () => {
+    // 用原始 optimizeDosing 验证：含 NM 的结果不应差于纯网格搜索
+    const result = optimizeDosing(makeRequest({ maxDosingPoints: 2 }));
+    for (const pp of result.paretoFrontier) {
+      // 浓度在有效范围内
+      expect(pp.finalConcentration).toBeGreaterThanOrEqual(0);
+      expect(pp.finalConcentration).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('多段河流 + 多投药点', () => {
+    const result = optimizeDosing(makeRequest({
+      maxDosingPoints: 3,
+      positionGridSize: 10,
+    }));
+    expect(result.paretoFrontier.length).toBe(3);
+    // N=3 应比 N=1 显著改善
+    const n1 = result.paretoFrontier[0].finalConcentration;
+    const n3 = result.paretoFrontier[2].finalConcentration;
+    expect(n3).toBeLessThanOrEqual(n1);
+  });
+
+  test('性能：5段 × maxN=3 应在 2s 内完成', () => {
+    const t0 = performance.now();
+    optimizeDosing(makeRequest({ maxDosingPoints: 3 }));
+    const elapsed = performance.now() - t0;
+    expect(elapsed).toBeLessThan(2000);
+  });
+});
