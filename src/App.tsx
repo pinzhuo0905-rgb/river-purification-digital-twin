@@ -2,7 +2,16 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { SegmentControlPanel } from './components/SegmentControlPanel';
 import { Dashboard } from './components/Dashboard';
 import { RiverCanvas } from './components/RiverCanvas';
-import { simulatePurification, type SimulationResult, type RiverSegment } from './engine/simulation';
+import {
+  simulatePurification,
+  type SimulationResult,
+  type SimulationResultV3,
+  type RiverSegment,
+  type SimulationParamsV3,
+  type PollutantType,
+  type CatalystPlacement,
+} from './engine/simulation';
+import type { ParetoPoint } from './engine/optimizer';
 
 // ── 后端 API ─────────────────────────────────────────────────
 import {
@@ -45,7 +54,7 @@ const ANIM_STEP = 0.05;
 // ═══════════════════════════════════════════════════════════════
 
 /** 将 API 返回的仿真结果转换为前端 SimulationResult 类型 */
-function apiResultToSimResult(r: SimulateResult): SimulationResult {
+function apiResultToSimResult(r: SimulateResult): SimulationResultV3 {
   return {
     optimalX: r.optimal_x,
     optimalY: r.optimal_y,
@@ -59,6 +68,7 @@ function apiResultToSimResult(r: SimulateResult): SimulationResult {
       reactionScore: m.reaction_score,
       depth: m.depth ?? 1.5,
       width: m.width ?? 1,
+      terrain: (m as any).terrain ?? 'river',
     })),
     riverPath: r.river_path.map(p => ({
       x: p.x,
@@ -66,9 +76,16 @@ function apiResultToSimResult(r: SimulateResult): SimulationResult {
       concentration: p.concentration,
       segIndex: p.seg_index,
       widthPx: p.width_px ?? r.river_width_px,
+      ntu: (p as any).ntu ?? 0,
+      catalystActive: (p as any).catalystActive ?? false,
     })),
     riverWidthPx: r.river_width_px,
     segmentWidthsPx: r.segment_widths_px ?? [],
+    segmentOutNtu: (r as any).segment_out_ntu ?? [],
+    waterQualityStandard: (r as any).water_quality_standard ?? {
+      classIMet: false,
+      residualRatio: 1,
+    },
   };
 }
 
@@ -83,7 +100,29 @@ function App() {
   const [catalyst, setCatalyst] = useState(0.8);
   const [depth, setDepth] = useState(1.5);
   const [turbidity, setTurbidity] = useState(5);
+  const [pollutantType, setPollutantType] = useState<PollutantType>('organic_macromolecule');
+  const [doseRatio, setDoseRatio] = useState(2.0);
+  const [catalystPlacements, setCatalystPlacements] = useState<CatalystPlacement[]>([]);
   const [result, setResult] = useState<SimulationResult | null>(null);
+
+  // ── 自动投药优化 ──────────────────────────────────────────
+  const [paretoFrontier, setParetoFrontier] = useState<ParetoPoint[] | undefined>();
+  const [baselineConcentration, setBaselineConcentration] = useState<number | undefined>();
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [maxDosingPoints, setMaxDosingPoints] = useState(5);
+
+  // 向后兼容：catalystPlacements 为空时从旧 catalyst 全局参数生成
+  const effectivePlacements: CatalystPlacement[] = useMemo(() => {
+    if (catalystPlacements.length > 0) return catalystPlacements;
+    if (result) {
+      return [{
+        segmentIndex: result.optimalSegmentIndex,
+        activity: catalyst,
+        doseRatio,
+      }];
+    }
+    return [{ segmentIndex: 0, activity: catalyst, doseRatio }];
+  }, [catalystPlacements, catalyst, doseRatio, result?.optimalSegmentIndex]);
 
   // ── 动画 ──────────────────────────────────────────────────
   const [animTime, setAnimTime] = useState(0);
@@ -219,25 +258,27 @@ function App() {
 
       return () => { cancelled = true; };
     } else {
-      // ── 本地计算（原逻辑） ──────────────────────────────
+      // ── 本地计算（v4 引擎） ──────────────────────────────
       setSimLoading(false);
       setSimError(null);
       setComputeTime(null);
-      const res = simulatePurification({
+      const v4Params: SimulationParamsV3 = {
         gridWidth: GRID_W,
         gridHeight: GRID_H,
-        segments,
+        segments: segments as any,
         lightIntensity: light,
-        catalystEfficiency: catalyst,
-        turbidity,
-      });
+        baseNtu: turbidity,
+        pollutantType,
+        catalystPlacements: effectivePlacements.length > 0 ? effectivePlacements : undefined,
+      };
+      const res = simulatePurification(v4Params);
       setResult(res);
     }
     // 重置动画
     clearTimer();
     setAnimTime(0);
     setIsRunning(false);
-  }, [segments, light, catalyst, depth, turbidity, useRemote]); // eslint-disable-line
+  }, [segments, light, catalyst, depth, turbidity, pollutantType, doseRatio, effectivePlacements, useRemote]); // eslint-disable-line
 
   // ── 动画控制 ──────────────────────────────────────────────
   const clearTimer = useCallback(() => {
@@ -268,6 +309,63 @@ function App() {
   useEffect(() => clearTimer, [clearTimer]);
 
   const animProgress = Math.min(animTime / ANIM_DURATION, 1);
+
+  // ── 自动投药优化 ──────────────────────────────────────────
+  const handleOptimize = useCallback(async () => {
+    setIsOptimizing(true);
+    try {
+      const payload = {
+        light_intensity: light,
+        base_ntu: turbidity,
+        pollutant_type: pollutantType,
+        segments: segments.map(s => ({
+          id: s.id,
+          velocity: s.velocity,
+          directionAngle: s.directionAngle,
+          length: s.length,
+          depth: s.depth ?? 1.5,
+          width: s.width ?? 1.0,
+        })),
+        max_dosing_points: maxDosingPoints,
+        position_grid_size: 10,
+      };
+      const res = await fetch('http://localhost:8000/api/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      setParetoFrontier(data.pareto_frontier);
+      setBaselineConcentration(data.baseline_concentration);
+      // 自动应用最优方案
+      if (data.optimal?.dosing_points) {
+        const placements: CatalystPlacement[] = data.optimal.dosing_points.map(
+          (dp: any) => ({
+            segmentIndex: dp.segment_index,
+            activity: dp.activity,
+            doseRatio: dp.dose_ratio,
+            effectiveAfterRatio: dp.position_ratio,
+          })
+        );
+        setCatalystPlacements(placements);
+      }
+    } catch (err) {
+      console.error('优化失败:', err);
+    } finally {
+      setIsOptimizing(false);
+    }
+  }, [light, turbidity, pollutantType, segments, maxDosingPoints]);
+
+  // 帕累托选点处理
+  const handleSelectParetoPoint = useCallback((point: ParetoPoint) => {
+    const placements: CatalystPlacement[] = point.dosingPoints.map(dp => ({
+      segmentIndex: dp.segmentIndex,
+      activity: dp.activity,
+      doseRatio: dp.doseRatio,
+      effectiveAfterRatio: dp.positionRatio,
+    }));
+    setCatalystPlacements(placements);
+  }, []);
 
   // ── 阶段一：保存场景 ──────────────────────────────────────
   const handleSave = useCallback(async () => {
@@ -735,6 +833,10 @@ function App() {
               catalyst={catalyst} setCatalyst={setCatalyst}
               depth={depth} setDepth={setDepth}
               turbidity={turbidity} setTurbidity={setTurbidity}
+              pollutantType={pollutantType} setPollutantType={setPollutantType}
+              doseRatio={doseRatio} setDoseRatio={setDoseRatio}
+              catalystPlacements={catalystPlacements}
+              setCatalystPlacements={setCatalystPlacements}
             />
             {/* WebSocket 玩家列表 */}
             {wsConnected && players.length > 0 && (
@@ -824,10 +926,12 @@ function App() {
             {/* 2D 仿真视图 */}
             <div className="h-[340px]">
               <RiverCanvas
-                result={result}
+                result={result as SimulationResultV3 | null}
                 gridWidth={GRID_W}
                 gridHeight={GRID_H}
                 animProgress={animProgress}
+                catalystPlacements={effectivePlacements}
+                segments={segments}
               />
             </div>
 
@@ -838,9 +942,18 @@ function App() {
                 optX={result.optimalX}
                 optY={result.optimalY}
                 segmentOutConcentrations={result.segmentOutConcentrations}
+                segmentOutNtu={(result as SimulationResultV3).segmentOutNtu}
                 segmentMetrics={result.segmentMetrics}
                 optimalSegmentIndex={result.optimalSegmentIndex}
                 animProgress={animProgress}
+                waterQualityStandard={(result as SimulationResultV3).waterQualityStandard}
+                paretoFrontier={paretoFrontier}
+                baselineConcentration={baselineConcentration}
+                isOptimizing={isOptimizing}
+                onOptimize={handleOptimize}
+                onSelectParetoPoint={handleSelectParetoPoint}
+                maxDosingPoints={maxDosingPoints}
+                onMaxDosingPointsChange={setMaxDosingPoints}
               />
             )}
           </div>
