@@ -36,6 +36,10 @@ from schemas import (
     SimulationRecordResponse,
     WaterQualityStandardSchema,
     SecondaryResultSchema,
+    DosingPointSchema,
+    ParetoPointSchema,
+    OptimizeRequest,
+    OptimizeResponse,
 )
 from logging_config import setup_logging, get_logger, RequestLoggingMiddleware
 from exceptions import register_exception_handlers
@@ -792,6 +796,85 @@ async def run_simulation(body: SimulateRequest):
         compute_time_ms=round(elapsed_ms, 3),
         water_quality_standard=water_quality_standard,
         secondary_result=secondary_result,
+    )
+
+
+@app.post("/api/optimize", response_model=OptimizeResponse)
+async def optimize_dosing_endpoint(body: OptimizeRequest):
+    """
+    自动投药优化接口 — 计算帕累托前沿（投药次数 vs 最优浓度）。
+
+    接收与 /api/simulate 相同的河流参数，额外接受 maxDosingPoints
+    和 positionGridSize 控制搜索空间。
+    """
+    from optimizer import optimize_dosing, OptimizationRequest as PyOptReq
+
+    t0 = time.perf_counter()
+
+    request = PyOptReq(
+        params={
+            "gridWidth": 400,
+            "gridHeight": 150,
+            "lightIntensity": body.light_intensity,
+            "baseNtu": body.base_ntu,
+            "pollutantType": body.pollutant_type,
+            "segments": [s.model_dump() for s in body.segments],
+            "pollutantDischarges": (
+                [d.model_dump() for d in body.pollutant_discharges]
+                if body.pollutant_discharges else None
+            ),
+        },
+        max_dosing_points=body.max_dosing_points,
+        position_grid_size=body.position_grid_size,
+    )
+
+    result = optimize_dosing(request)
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+
+    logger.info(
+        "优化完成: pareto_points=%d, optimal_N=%d, baseline=%.4f, 耗时=%.2fms",
+        len(result.pareto_frontier),
+        result.optimal.dosing_count,
+        result.baseline_concentration,
+        elapsed_ms,
+    )
+
+    return OptimizeResponse(
+        pareto_frontier=[
+            ParetoPointSchema(
+                dosing_count=p.dosing_count,
+                final_concentration=p.final_concentration,
+                dosing_points=[
+                    DosingPointSchema(
+                        segment_index=dp.segment_index,
+                        position_ratio=dp.position_ratio,
+                        activity=dp.activity,
+                        dose_ratio=dp.dose_ratio,
+                    )
+                    for dp in p.dosing_points
+                ],
+                class_i_met=p.class_i_met,
+                compute_time_ms=p.compute_time_ms,
+            )
+            for p in result.pareto_frontier
+        ],
+        optimal=ParetoPointSchema(
+            dosing_count=result.optimal.dosing_count,
+            final_concentration=result.optimal.final_concentration,
+            dosing_points=[
+                DosingPointSchema(
+                    segment_index=dp.segment_index,
+                    position_ratio=dp.position_ratio,
+                    activity=dp.activity,
+                    dose_ratio=dp.dose_ratio,
+                )
+                for dp in result.optimal.dosing_points
+            ],
+            class_i_met=result.optimal.class_i_met,
+            compute_time_ms=result.optimal.compute_time_ms,
+        ),
+        baseline_concentration=result.baseline_concentration,
+        compute_time_ms=round(elapsed_ms, 3),
     )
 
 

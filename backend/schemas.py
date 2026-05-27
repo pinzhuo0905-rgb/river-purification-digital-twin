@@ -26,7 +26,10 @@ class PollutantDischargeSchema(BaseModel):
     """污染物排放点"""
     segmentIndex: int = Field(description="排放所在分段的索引")
     positionRatio: float = Field(ge=0, le=1, description="在该分段上的相对位置 (0~1)")
-    pollutantType: Literal["organic_macromolecule", "sediment_algae"] = Field(description="污染物类型")
+    pollutantType: Literal[
+        "organic_macromolecule", "sediment_algae", "heavy_metal",
+        "petroleum_hydrocarbon", "nutrient_runoff", "microplastic",
+    ] = Field(description="污染物类型")
     mass: float = Field(ge=0, le=1, description="污染物质量 (0~1)")
     dischargeType: Literal["continuous", "burst"] = Field(description="排放方式: 持续/瞬时")
 
@@ -36,6 +39,7 @@ class CatalystPlacementSchema(BaseModel):
     segmentIndex: int = Field(description="投放所在分段的索引")
     activity: float = Field(ge=0, le=1, description="催化剂活性 (0~1)")
     doseRatio: float = Field(ge=0.01, le=10, description="投放剂量比 (0.01~10)")
+    effectiveAfterRatio: float = Field(default=0, ge=0, le=1, description="段内延迟生效位置 (0~1)")
 
 
 class ConfluenceConfigSchema(BaseModel):
@@ -112,7 +116,10 @@ class SimulateRequest(BaseModel):
     """前端 POST /simulate 的请求体"""
     light_intensity: float = Field(ge=0.1, le=3.0, default=1.0)
     base_ntu: float = Field(ge=0, le=100, default=5, description="基准浊度 (NTU)")
-    pollutant_type: Literal["organic_macromolecule", "sediment_algae"] = Field(
+    pollutant_type: Literal[
+        "organic_macromolecule", "sediment_algae", "heavy_metal",
+        "petroleum_hydrocarbon", "nutrient_runoff", "microplastic",
+    ] = Field(
         default="organic_macromolecule", description="污染物类型"
     )
     segments: list[RiverSegmentSchema] = Field(min_length=1, max_length=10)
@@ -212,3 +219,36 @@ class SimulationRecordResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ──────────────── 投药优化 ────────────────
+
+class DosingPointSchema(BaseModel):
+    """单个最优投药点"""
+    segment_index: int = Field(description="分段索引")
+    position_ratio: float = Field(ge=0, le=1, description="段内相对位置")
+    activity: float = Field(ge=0, le=1, description="催化剂活性")
+    dose_ratio: float = Field(gt=0, le=10, description="投药比例")
+
+
+class ParetoPointSchema(BaseModel):
+    """帕累托曲线上的一个点"""
+    dosing_count: int = Field(description="投药次数 N")
+    final_concentration: float = Field(ge=0, le=1, description="最优最终浓度")
+    dosing_points: list[DosingPointSchema] = Field(description="对应投药方案")
+    class_i_met: bool = Field(description="是否达到 I 类水标准")
+    compute_time_ms: float = Field(description="该点计算耗时 (ms)")
+
+
+class OptimizeRequest(SimulateRequest):
+    """投药优化请求 — 继承 SimulateRequest 全部字段"""
+    max_dosing_points: int = Field(default=5, ge=0, le=20, description="最大投药次数")
+    position_grid_size: int = Field(default=10, ge=2, le=50, description="位置离散化精度")
+
+
+class OptimizeResponse(BaseModel):
+    """投药优化结果"""
+    pareto_frontier: list[ParetoPointSchema] = Field(description="帕累托前沿曲线")
+    optimal: ParetoPointSchema = Field(description="自动推荐的最优方案")
+    baseline_concentration: float = Field(description="无催化剂时的基线浓度")
+    compute_time_ms: float = Field(description="优化总耗时 (ms)")
