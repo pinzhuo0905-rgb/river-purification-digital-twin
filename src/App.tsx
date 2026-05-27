@@ -335,7 +335,20 @@ function App() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      setParetoFrontier(data.pareto_frontier);
+      // API 返回 snake_case → 转换为前端 camelCase 类型
+      const mappedPareto: ParetoPoint[] = (data.pareto_frontier ?? []).map((p: any) => ({
+        dosingCount: p.dosing_count,
+        finalConcentration: p.final_concentration,
+        dosingPoints: (p.dosing_points ?? []).map((dp: any) => ({
+          segmentIndex: dp.segment_index,
+          positionRatio: dp.position_ratio,
+          activity: dp.activity,
+          doseRatio: dp.dose_ratio,
+        })),
+        classIMet: p.class_i_met,
+        computeTimeMs: p.compute_time_ms,
+      }));
+      setParetoFrontier(mappedPareto);
       setBaselineConcentration(data.baseline_concentration);
       // 自动应用最优方案
       if (data.optimal?.dosing_points) {
