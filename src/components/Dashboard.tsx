@@ -174,11 +174,17 @@ function ParetoChart({ paretoFrontier, baselineConcentration, onSelectPoint }: P
             const idx = ctx.dataIndex;
             const pt = paretoFrontier?.[idx];
             if (!pt) return '';
-            return [
+            const lines = [
               `浓度: ${(pt.finalConcentration * 100).toFixed(1)}%`,
               `达标: ${pt.classIMet ? '✓' : '✗'}`,
-              `耗时: ${pt.computeTimeMs.toFixed(0)}ms`,
             ];
+            for (const dp of pt.dosingPoints) {
+              lines.push(
+                `  段${dp.segmentIndex + 1} pos=${(dp.positionRatio * 100).toFixed(0)}% dose=${dp.doseRatio.toFixed(1)} act=${dp.activity.toFixed(1)}`
+              );
+            }
+            lines.push(`耗时: ${pt.computeTimeMs.toFixed(0)}ms`);
+            return lines;
           },
         },
       },
@@ -393,11 +399,73 @@ export function Dashboard({
 
       {/* ── 帕累托曲线 ──────────────────────────────────── */}
       {paretoFrontier && paretoFrontier.length > 0 && (
-        <ParetoChart
-          paretoFrontier={paretoFrontier}
-          baselineConcentration={baselineConcentration}
-          onSelectPoint={onSelectParetoPoint}
-        />
+        <>
+          <ParetoChart
+            paretoFrontier={paretoFrontier}
+            baselineConcentration={baselineConcentration}
+            onSelectPoint={onSelectParetoPoint}
+          />
+          {/* ── 投药方案明细 ───────────────────────────── */}
+          <div className="overflow-x-auto">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+              各投药方案明细（投药次数、位置、剂量、活性）
+            </p>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-indigo-100 text-gray-600">
+                  <th className="px-2 py-1.5 text-left rounded-tl-lg">投药次数 N</th>
+                  <th className="px-2 py-1.5 text-right">最终浓度</th>
+                  <th className="px-2 py-1.5 text-center">达标</th>
+                  <th className="px-2 py-1.5 text-left">投药明细（段 · 位置 · 剂量 · 活性）</th>
+                  <th className="px-2 py-1.5 text-right rounded-tr-lg">总投药量</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paretoFrontier.map((p, i) => {
+                  const totalDose = p.dosingPoints.reduce((sum, dp) => sum + dp.doseRatio, 0);
+                  const isOptimal = i === paretoFrontier.findIndex(pp =>
+                    pp.dosingCount === (paretoFrontier.filter(x => x.classIMet)[0]?.dosingCount ?? paretoFrontier[paretoFrontier.length - 1]?.dosingCount)
+                  );
+                  return (
+                    <tr
+                      key={i}
+                      onClick={() => onSelectParetoPoint?.(p)}
+                      className={`border-t border-gray-100 cursor-pointer transition-colors ${
+                        isOptimal ? 'bg-emerald-50 font-bold' : 'hover:bg-indigo-50'
+                      }`}
+                    >
+                      <td className="px-2 py-1.5">
+                        {isOptimal && <span className="mr-1 text-emerald-600">★</span>}
+                        N={p.dosingCount}
+                      </td>
+                      <td className={`px-2 py-1.5 text-right font-mono ${
+                        p.classIMet ? 'text-emerald-600' : 'text-red-500'
+                      }`}>
+                        {(p.finalConcentration * 100).toFixed(1)}%
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {p.classIMet ? <span className="text-emerald-500">✓</span> : <span className="text-red-400">✗</span>}
+                      </td>
+                      <td className="px-2 py-1.5 font-mono text-gray-600">
+                        {p.dosingPoints.map((dp, j) => (
+                          <span key={j} className="inline-block mr-2 px-1.5 py-0.5 bg-gray-100 rounded">
+                            段{dp.segmentIndex + 1}
+                            @{(dp.positionRatio * 100).toFixed(0)}%
+                            | dose={dp.doseRatio.toFixed(1)}
+                            | act={dp.activity.toFixed(1)}
+                          </span>
+                        ))}
+                      </td>
+                      <td className="px-2 py-1.5 text-right font-mono font-bold text-indigo-600">
+                        Σ={totalDose.toFixed(1)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* ── 三 Y 轴折线图 ─────────────────────────────── */}
