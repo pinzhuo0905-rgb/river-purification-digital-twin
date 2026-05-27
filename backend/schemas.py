@@ -53,10 +53,11 @@ class ConfluenceConfigSchema(BaseModel):
 # ──────────────── v3 结果模型 ────────────────
 
 class WaterQualityStandardSchema(BaseModel):
-    """水质标准达标评估"""
+    """水质标准达标评估（GB3838-2002 六级分类）"""
     class_i_met: bool = Field(description="是否达到 I 类水标准")
+    water_quality_class: str = Field(description="水质等级：I/II/III/IV/V/劣V")
     residual_ratio: float = Field(description="残余污染物比率")
-    distance_to_standard: Optional[float] = Field(default=None, description="距标准线的距离 (null 表示已达标或无法计算)")
+    distance_to_standard: Optional[float] = Field(default=None, description="距 I 类线的距离 (null 表示已达标或无法计算)")
 
 
 class SecondaryResultSchema(BaseModel):
@@ -237,6 +238,7 @@ class ParetoPointSchema(BaseModel):
     final_concentration: float = Field(ge=0, le=1, description="最优最终浓度")
     dosing_points: list[DosingPointSchema] = Field(description="对应投药方案")
     class_i_met: bool = Field(description="是否达到 I 类水标准")
+    water_quality_class: str = Field(description="水质等级：I/II/III/IV/V/劣V")
     compute_time_ms: float = Field(description="该点计算耗时 (ms)")
 
 
@@ -252,3 +254,38 @@ class OptimizeResponse(BaseModel):
     optimal: ParetoPointSchema = Field(description="自动推荐的最优方案")
     baseline_concentration: float = Field(description="无催化剂时的基线浓度")
     compute_time_ms: float = Field(description="优化总耗时 (ms)")
+
+
+# ──────────────── 水质分类与反算 ────────────────
+
+class ClassifyRequest(BaseModel):
+    """正向分类请求"""
+    pollutant_type: str = Field(description="污染物类型")
+    residual_ratio: float = Field(ge=0, le=1, description="残余浓度比率")
+
+
+class ClassifyResponse(BaseModel):
+    """正向分类结果"""
+    model_config = {"populate_by_name": True}
+    class_: str = Field(alias="class", description="水质等级：I/II/III/IV/V/劣V")
+    class_i_met: bool = Field(description="是否达到 I 类标准")
+    residual_ratio: float = Field(description="残余浓度比率")
+    class_threshold: float = Field(description="所属等级的阈值")
+
+
+class CalculateDoseRequest(BaseModel):
+    """反向投药计算请求"""
+    target_class: str = Field(description="目标水质等级：I/II/III/IV/V")
+    pollutant_type: str = Field(description="污染物类型")
+    segments: list[RiverSegmentSchema] = Field(min_length=1, max_length=10)
+    light_intensity: float = Field(ge=0.1, le=3.0, default=1.0)
+    base_ntu: float = Field(ge=0, le=100, default=5)
+
+
+class CalculateDoseResponse(BaseModel):
+    """反向投药计算结果"""
+    required_dose_ratio: float = Field(description="所需最小投药剂量")
+    final_concentration: float = Field(description="预期最终浓度")
+    class_i_met: bool = Field(description="该剂量下是否达标")
+    found: bool = Field(description="是否找到有效剂量")
+    iterations: int = Field(description="二分迭代次数")

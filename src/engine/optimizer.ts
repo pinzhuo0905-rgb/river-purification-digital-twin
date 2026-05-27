@@ -23,11 +23,14 @@ export interface DosingPoint {
   doseRatio: number;
 }
 
+import { classifyWaterQuality, type WaterQualityClass } from './waterQuality';
+
 export interface ParetoPoint {
   dosingCount: number;
   finalConcentration: number;
   dosingPoints: DosingPoint[];
   classIMet: boolean;
+  waterQualityClass: WaterQualityClass;
   computeTimeMs: number;
 }
 
@@ -266,14 +269,15 @@ function nelderMeadRefine(
 //  主函数：构建帕累托前沿
 // ═══════════════════════════════════════════════════════════════
 
-const CLASS_I_THRESHOLD = 0.10;
 
 export function optimizeDosing(request: OptimizationRequest): OptimizationResult {
   const { params, maxDosingPoints, positionGridSize } = request;
+  const { pollutantType } = params;
 
   // 基线：无催化剂
   const baseResult = evaluate(params, []);
   const baselineConcentration = baseResult.segmentOutConcentrations.slice(-1)[0] ?? 1;
+  const baseAssessment = classifyWaterQuality(pollutantType, baselineConcentration);
 
   const paretoFrontier: ParetoPoint[] = [];
   let prevBest: DosingPoint[] = [];
@@ -291,12 +295,14 @@ export function optimizeDosing(request: OptimizationRequest): OptimizationResult
     // c. 评估
     const result = evaluate(params, refined);
     const finalConc = result.segmentOutConcentrations.slice(-1)[0] ?? 1;
+    const assessment = classifyWaterQuality(pollutantType, finalConc);
 
     paretoFrontier.push({
       dosingCount: N,
       finalConcentration: finalConc,
       dosingPoints: refined.map(p => ({ ...p })),
-      classIMet: finalConc < CLASS_I_THRESHOLD,
+      classIMet: assessment.classIMet,
+      waterQualityClass: assessment.class,
       computeTimeMs: performance.now() - tN0,
     });
 
@@ -315,7 +321,8 @@ export function optimizeDosing(request: OptimizationRequest): OptimizationResult
       dosingCount: 0,
       finalConcentration: baselineConcentration,
       dosingPoints: [],
-      classIMet: baselineConcentration < CLASS_I_THRESHOLD,
+      classIMet: baseAssessment.classIMet,
+      waterQualityClass: baseAssessment.class,
       computeTimeMs: 0,
     };
   }

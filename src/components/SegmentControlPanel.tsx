@@ -95,33 +95,51 @@ export function SegmentControlPanel({
       {/* ── 污染物种类 ──────────────────────────────────── */}
       <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">污染物种类</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setPollutantType('organic_macromolecule')}
-            className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 transition font-medium ${
-              pollutantType === 'organic_macromolecule'
-                ? 'border-purple-500 bg-purple-50 text-purple-700'
-                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-            }`}
-          >
-            🧪 大分子有机物
-          </button>
-          <button
-            onClick={() => setPollutantType('sediment_algae')}
-            className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 transition font-medium ${
-              pollutantType === 'sediment_algae'
-                ? 'border-amber-500 bg-amber-50 text-amber-700'
-                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-            }`}
-          >
-            🏞 泥沙水藻
-          </button>
+        <div className="grid grid-cols-2 gap-1.5">
+          {([
+            ['organic_macromolecule', '🧪', '大分子有机物', 'border-purple-500 bg-purple-50 text-purple-700', 'NTU 12 · 生物可降解'],
+            ['sediment_algae', '🏞', '泥沙水藻', 'border-amber-500 bg-amber-50 text-amber-700', 'NTU 35 · 高浊度沉降'],
+            ['heavy_metal', '☠️', '重金属离子', 'border-red-500 bg-red-50 text-red-700', 'NTU 2 · 极难降解'],
+            ['petroleum_hydrocarbon', '🛢', '石油烃类', 'border-orange-500 bg-orange-50 text-orange-700', 'NTU 18 · 光解主导'],
+            ['nutrient_runoff', '🌱', '氮磷富营养化', 'border-green-500 bg-green-50 text-green-700', 'NTU 10 · 快速生物降解'],
+            ['microplastic', '🔬', '微塑料', 'border-gray-500 bg-gray-100 text-gray-700', 'NTU 1 · 近乎永恒'],
+          ] as const).map(([type, icon, label, activeClass, desc]) => (
+            <button
+              key={type}
+              onClick={() => setPollutantType(type as PollutantType)}
+              className={`px-2.5 py-1.5 text-xs rounded-lg border-2 transition font-medium text-left flex items-center gap-1.5 ${
+                pollutantType === type
+                  ? activeClass
+                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-sm">{icon}</span>
+              <span className="leading-tight">{label}</span>
+            </button>
+          ))}
         </div>
-        <p className="text-xs text-gray-400 mt-1.5">
-          {pollutantType === 'organic_macromolecule'
-            ? '大分子有机物：NTU 系数 12，微生物降解速度较快'
-            : '泥沙水藻：NTU 系数 35，对水体浊度贡献显著更大'}
-        </p>
+
+        {/* 当前选中污染物的详细降解行为说明 */}
+        <div className="mt-2 p-2 rounded-lg text-xs leading-relaxed bg-white/60 border border-gray-100">
+          {pollutantType === 'organic_macromolecule' && (
+            <p>🧪 <b>大分子有机物</b>：中等浊度 (NTU×12)。微生物降解速率较快 (×1.5)，光催化效果显著。属于最典型的治理场景，催化剂投放后浓度下降明显。</p>
+          )}
+          {pollutantType === 'sediment_algae' && (
+            <p>🏞 <b>泥沙水藻</b>：高浊度 (NTU×35)，水体浑浊遮挡大量光线 → 有效光强极低 → 催化剂效能大打折扣。自然沉降 (×0.5) 缓慢，需要强光照或浅水段投放催化剂。</p>
+          )}
+          {pollutantType === 'heavy_metal' && (
+            <p>☠️ <b>重金属离子</b>：溶解态几乎透明 (NTU×2)，但自然降解速率极慢 (×0.03)。光照穿透极好，催化剂可充分激活 → 光催化是唯一有效途径。不催化则几乎不降解。</p>
+          )}
+          {pollutantType === 'petroleum_hydrocarbon' && (
+            <p>🛢 <b>石油烃类</b>：中高浊度 (NTU×18)，水面油膜反射部分光照。光解自然衰减 (×0.8) 中等。催化剂能显著加速降解，油膜逐渐变薄后 NTU 下降形成正反馈。</p>
+          )}
+          {pollutantType === 'nutrient_runoff' && (
+            <p>🌱 <b>氮磷富营养化</b>：中等浊度 (NTU×10)。微生物降解极快 (×2.5)，即使不加催化剂也能快速自净。催化剂投放后降解更快，是达标最容易的污染物类型。</p>
+          )}
+          {pollutantType === 'microplastic' && (
+            <p>🔬 <b>微塑料</b>：肉眼不可见 (NTU×1)，但自然降解近乎为零 (×0.01)。光解和微生物几乎不起作用 → 必须依赖高活性催化剂 + 长停留时间才能缓慢降解。是一类"隐形但顽固"的污染物。</p>
+          )}
+        </div>
       </div>
 
       {/* ── 全局环境参数 ────────────────────────────────── */}

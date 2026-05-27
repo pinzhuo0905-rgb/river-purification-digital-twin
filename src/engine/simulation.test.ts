@@ -4,6 +4,7 @@ import {
   type SimulationParams,
   type SimulationParamsV3,
   type CatalystPlacement,
+  type PollutantType,
 } from './simulation';
 import { test, expect, describe } from 'vitest';
 
@@ -278,6 +279,102 @@ describe('NTU 动态反馈', () => {
     const firstNtu = result.riverPath[0].ntu;
     const lastNtu = result.riverPath[result.riverPath.length - 1].ntu;
     expect(lastNtu).toBeLessThanOrEqual(firstNtu);
+  });
+});
+
+describe('新污染物种类 — 差异化降解行为', () => {
+  test('重金属几乎不自然降解（无催化剂）', () => {
+    const result = simulatePurification({
+      gridWidth: 400, gridHeight: 150,
+      lightIntensity: 1.0, baseNtu: 5, pollutantType: 'heavy_metal',
+      segments: [{ id: 1, velocity: 3.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+      // 不投催化剂，快速流过 → 停留时间短 → 自然降解极少
+    });
+    const finalConc = result.segmentOutConcentrations[result.segmentOutConcentrations.length - 1];
+    // 重金属自然降解boost=0.03，应几乎不衰减
+    expect(finalConc).toBeGreaterThan(0.90);
+  });
+
+  test('重金属在催化剂作用下降解显著', () => {
+    const noCat = simulatePurification({
+      gridWidth: 400, gridHeight: 150,
+      lightIntensity: 1.0, baseNtu: 5, pollutantType: 'heavy_metal',
+      segments: [{ id: 1, velocity: 1.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+    });
+    const withCat = simulatePurification({
+      gridWidth: 400, gridHeight: 150,
+      lightIntensity: 1.0, baseNtu: 5, pollutantType: 'heavy_metal',
+      segments: [{ id: 1, velocity: 1.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+      catalystPlacements: [{ segmentIndex: 0, activity: 0.8, doseRatio: 3.0 }],
+    });
+    const noCatFinal = noCat.segmentOutConcentrations[0];
+    const withCatFinal = withCat.segmentOutConcentrations[0];
+    // 催化剂驱动的降解应远大于自然降解
+    expect(noCatFinal - withCatFinal).toBeGreaterThan(0.1);
+  });
+
+  test('微塑料 NTU 极低（近乎透明）', () => {
+    const result = simulatePurification({
+      gridWidth: 400, gridHeight: 150,
+      lightIntensity: 1.0, baseNtu: 5, pollutantType: 'microplastic',
+      segments: [{ id: 1, velocity: 1.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+      catalystPlacements: [{ segmentIndex: 0, activity: 0.5, doseRatio: 3.0 }],
+    });
+    // 微塑料 NTU 系数=1，初始 NTU = 5 + 1×1 = 6，仅比基础值高 1
+    expect(result.riverPath[0].ntu).toBeLessThan(7);
+    // 与泥沙水藻(NTU=5+35×1=40)相比极低
+    const algae = simulatePurification({
+      gridWidth: 400, gridHeight: 150,
+      lightIntensity: 1.0, baseNtu: 5, pollutantType: 'sediment_algae',
+      segments: [{ id: 1, velocity: 1.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+      catalystPlacements: [{ segmentIndex: 0, activity: 0.5, doseRatio: 3.0 }],
+    });
+    expect(algae.riverPath[0].ntu).toBeGreaterThan(result.riverPath[0].ntu * 5);
+  });
+
+  test('氮磷富营养化自然降解极快', () => {
+    const result = simulatePurification({
+      gridWidth: 400, gridHeight: 150,
+      lightIntensity: 1.0, baseNtu: 5, pollutantType: 'nutrient_runoff',
+      segments: [{ id: 1, velocity: 1.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+      // 不投催化剂 — 自然降解也应该很快
+    });
+    const finalConc = result.segmentOutConcentrations[0];
+    // 自然降解应该已经去除了大部分
+    expect(finalConc).toBeLessThan(0.5);
+  });
+
+  test('石油烃类 NTU 随浓度下降而下降（正反馈）', () => {
+    const result = simulatePurification({
+      gridWidth: 400, gridHeight: 150,
+      lightIntensity: 1.0, baseNtu: 5, pollutantType: 'petroleum_hydrocarbon',
+      segments: [{ id: 1, velocity: 1.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+      catalystPlacements: [{ segmentIndex: 0, activity: 0.5, doseRatio: 2.0 }],
+    });
+    const firstNtu = result.riverPath[0].ntu;
+    const lastNtu = result.riverPath[result.riverPath.length - 1].ntu;
+    // NTU 应随降解显著下降
+    expect(lastNtu).toBeLessThan(firstNtu * 0.9);
+  });
+
+  test('6 种污染物初始 NTU 严格排序', () => {
+    const types: PollutantType[] = [
+      'microplastic', 'heavy_metal', 'nutrient_runoff',
+      'organic_macromolecule', 'petroleum_hydrocarbon', 'sediment_algae',
+    ];
+    const ntus = types.map(t => {
+      const r = simulatePurification({
+        gridWidth: 400, gridHeight: 150,
+        lightIntensity: 1.0, baseNtu: 5, pollutantType: t,
+        segments: [{ id: 1, velocity: 1.0, directionAngle: 0, length: 1, depth: 1.5, width: 1.0 }],
+        catalystPlacements: [{ segmentIndex: 0, activity: 0.5, doseRatio: 3.0 }],
+      });
+      return r.riverPath[0].ntu;
+    });
+    // NTU 从低到高严格递增
+    for (let i = 1; i < ntus.length; i++) {
+      expect(ntus[i]).toBeGreaterThan(ntus[i - 1]);
+    }
   });
 });
 

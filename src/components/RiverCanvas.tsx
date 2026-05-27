@@ -46,7 +46,7 @@ function riverColor(conc: number): [number, number, number] {
   ];
 }
 
-/** 催化投放点专用色（按索引循环） */
+/** 催化剂投放点专用色（按索引循环） */
 const MARKER_COLORS = [
   '#ff4444', '#ff8800', '#ffdd00', '#44ff44',
   '#44ddff', '#8844ff', '#ff44aa', '#00cc88',
@@ -72,7 +72,6 @@ function perpNorm(p0: Point2D, p1: Point2D): { nx: number; ny: number } {
 //  绘制工具
 // ═══════════════════════════════════════════════════════════════════
 
-/** 绘制单段河流四边形 */
 function fillQuad(
   ctx: CanvasRenderingContext2D,
   p0: Point2D,
@@ -92,7 +91,6 @@ function fillQuad(
   ctx.fill();
 }
 
-/** 绘制逐段变化的河流层 */
 function drawRiverLayer(
   ctx: CanvasRenderingContext2D,
   pts: Point2D[],
@@ -136,24 +134,25 @@ export function RiverCanvas({
 
     // ── 动画：根据 progress 决定可见采样点数 ──────────────
     const totalPoints = result.riverPath.length;
-    const visibleCount = Math.max(2, Math.round(totalPoints * Math.max(animProgress, 0.01)));
+    const visibleCount = Math.max(2, Math.round(totalPoints * Math.max(animProgress, 0.005)));
     const visiblePath = result.riverPath.slice(0, visibleCount);
 
     // ── 计算弯曲中心线（方向角累积 y 偏移）──────────────
     const centerPts: Point2D[] = [];
-    // 构建 segIndex → directionAngle 快速查找
     const segAngles = new Map<number, number>();
     for (const seg of segments) {
-      segAngles.set(seg.id - 1, seg.directionAngle); // id 是 1-based
+      segAngles.set(seg.id - 1, seg.directionAngle);
     }
 
     let cumY = gridHeight * 0.5;
     let lastSegIdx = -1;
+    // 累计偏转角的 x 方向衰减（防止过度蛇形）
+    let angleAccum = 0;
     for (let i = 0; i < visiblePath.length; i++) {
       const pp = visiblePath[i];
       if (pp.segIndex !== lastSegIdx && lastSegIdx !== -1) {
-        const angle = segAngles.get(pp.segIndex) ?? 0;
-        cumY += Math.sin((angle * Math.PI) / 180) * 40;
+        angleAccum = (segAngles.get(pp.segIndex) ?? 0) * 0.6;
+        cumY += Math.sin((angleAccum * Math.PI) / 180) * 40;
       }
       lastSegIdx = pp.segIndex;
       centerPts.push({
@@ -162,7 +161,7 @@ export function RiverCanvas({
       });
     }
 
-    // ── 每点实际河宽（像素）─────────────────────────────
+    // ── 每点实际河宽（像素）— 严格来自仿真数据 ─────────
     const widthPxs = visiblePath.map(p => p.widthPx * scaleY);
 
     // ══════════════════════════════════════════════════════════
@@ -275,75 +274,162 @@ export function RiverCanvas({
     }
 
     // ══════════════════════════════════════════════════════════
-    //  9. 催化剂投放标记（多点）
+    //  9. 催化剂投放标记 — 多点增强版
     // ══════════════════════════════════════════════════════════
     if (catalystPlacements.length > 0) {
+      // 预扫描：找出每个投放段落中第一个已渲染到的点
+      const segToFirstIdx = new Map<number, number>();
+      const segToFirstPt = new Map<number, Point2D>();
+      const segToFirstW = new Map<number, number>();
+
+      for (let i = 0; i < centerPts.length; i++) {
+        const si = visiblePath[i].segIndex;
+        if (!segToFirstIdx.has(si)) {
+          segToFirstIdx.set(si, i);
+          segToFirstPt.set(si, centerPts[i]);
+          segToFirstW.set(si, widthPxs[i]);
+        }
+      }
+
       for (let cpIdx = 0; cpIdx < catalystPlacements.length; cpIdx++) {
         const cp = catalystPlacements[cpIdx];
-        // 找到该段在可见路径中的第一个点
-        const firstPtIdx = visiblePath.findIndex(p => p.segIndex === cp.segmentIndex);
-        if (firstPtIdx < 0 || firstPtIdx >= centerPts.length) continue;
+        const firstIdx = segToFirstIdx.get(cp.segmentIndex);
+        if (firstIdx === undefined) continue;
 
-        const p = centerPts[firstPtIdx];
-        const hw = widthPxs[firstPtIdx] * 0.6;
+        const p = segToFirstPt.get(cp.segmentIndex)!;
+        const hw = segToFirstW.get(cp.segmentIndex)! * 0.6;
+        const px = p.x;
+        const py = p.y - hw * 0.25;
         const color = MARKER_COLORS[cpIdx % MARKER_COLORS.length];
 
-        // 外光环
+        // ── 粒子喷射环（脉冲动画） ─────────────────
+        const particlePhase = (t * 0.03 + cpIdx * 1.7) % (Math.PI * 2);
+        const pulseR = 10 + Math.sin(particlePhase) * 5;
+        const pulseAlpha = 0.3 + Math.sin(particlePhase * 1.3) * 0.2;
+
+        // 外光环脉冲
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y - hw * 0.3, 10, 0, Math.PI * 2);
-        ctx.fillStyle = `${color}44`;
+        ctx.arc(px, py, pulseR + 6, 0, Math.PI * 2);
+        ctx.fillStyle = `${color}${Math.round(pulseAlpha * 44).toString(16).padStart(2, '0')}`;
         ctx.fill();
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // 十字标记
-        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.7 + Math.sin(particlePhase) * 0.3;
         ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // 第二光环（大圈）
         ctx.beginPath();
-        ctx.moveTo(p.x - 5, p.y - hw * 0.3);
-        ctx.lineTo(p.x + 5, p.y - hw * 0.3);
-        ctx.moveTo(p.x, p.y - hw * 0.3 - 5);
-        ctx.lineTo(p.x, p.y - hw * 0.3 + 5);
+        ctx.arc(px, py, pulseR + 16, 0, Math.PI * 2);
+        ctx.strokeStyle = `${color}55`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+
+        // ── 粒子群 ────────────────────────────────
+        for (let k = 0; k < 12; k++) {
+          const angle = (k / 12) * Math.PI * 2 + particlePhase * 0.5;
+          const dist = pulseR + 8 + ((hash(cpIdx * 100 + k, t) - 0.5) * 20);
+          const ppx = px + Math.cos(angle) * dist;
+          const ppy = py + Math.sin(angle) * dist;
+          const alpha = 0.3 + (hash(cpIdx * 200 + k, t + 99) * 0.5);
+          ctx.beginPath();
+          ctx.arc(ppx, ppy, 1.8 + hash(cpIdx * 50 + k, t + 50) * 2, 0, Math.PI * 2);
+          ctx.fillStyle = `${color}${Math.round(alpha * 255).toString(16).padStart(2, '0')}`;
+          ctx.fill();
+        }
+
+        // ── 十字标记 ──────────────────────────────
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(px - 6, py);
+        ctx.lineTo(px + 6, py);
+        ctx.moveTo(px, py - 6);
+        ctx.lineTo(px, py + 6);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // ── 标签卡片 ──────────────────────────────
+        ctx.save();
+        const labelW = 72;
+        const labelH = 32;
+        const labelX = px - labelW / 2;
+        const labelY = py - hw * 0.85 - labelH;
+
+        // 背景
+        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.beginPath();
+        ctx.roundRect(labelX, labelY, labelW, labelH, 6);
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(labelX, labelY, labelW, labelH, 6);
         ctx.stroke();
 
-        // 标签
+        // 文字
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 9px sans-serif';
+        ctx.font = 'bold 10px sans-serif';
         ctx.textAlign = 'center';
-        const label = `投药${cpIdx + 1} 活性${cp.activity.toFixed(1)}`;
-        ctx.fillText(label, p.x, p.y - hw * 0.9);
+        ctx.fillText(`投药点 ${cpIdx + 1}`, px, labelY + 14);
+        ctx.fillStyle = color;
+        ctx.font = '9px sans-serif';
+        ctx.fillText(`活性${cp.activity.toFixed(1)} · ${cp.doseRatio.toFixed(1)}×`, px, labelY + 27);
         ctx.restore();
       }
     }
 
     // ══════════════════════════════════════════════════════════
-    //  10. 动画前缘渐变遮罩（"伸出"效果）
+    //  10. 动画前缘 "伸出" 特效
     // ══════════════════════════════════════════════════════════
     if (animProgress < 1 && centerPts.length >= 2) {
       const tip = centerPts[centerPts.length - 1];
       const tipW = widthPxs[widthPxs.length - 1];
 
-      // 流动粒子
-      for (let k = 0; k < 6; k++) {
-        const spread = tipW * 0.7;
-        const px = tip.x + (Math.random() - 0.5) * spread * 0.6;
-        const py = tip.y + (Math.random() - 0.5) * spread;
-        const alpha = 0.4 + Math.random() * 0.4;
+      // 流动粒子（前缘喷涌）
+      for (let k = 0; k < 10; k++) {
+        const angle = (hash(k, t) - 0.5) * Math.PI * 0.7;
+        const dist = hash(k + 100, t) * tipW * 0.9;
+        const ppx = tip.x + Math.cos(angle) * dist;
+        const ppy = tip.y + Math.sin(angle) * dist;
+        const alpha = 0.25 + hash(k + 200, t) * 0.45;
+        const size = 1.2 + hash(k + 300, t) * 2.5;
         ctx.beginPath();
-        ctx.arc(px, py, 1.5 + Math.random() * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 240, 255, ${alpha})`;
+        ctx.arc(ppx, ppy, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 245, 255, ${alpha})`;
         ctx.fill();
       }
 
+      // 羽流轨迹线（从后方流向尖端）
+      if (centerPts.length > 6) {
+        const trailLen = Math.min(6, centerPts.length - 1);
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        for (let k = 1; k <= trailLen; k++) {
+          const pt = centerPts[centerPts.length - 1 - k];
+          const progressAlpha = k / trailLen;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 2 + progressAlpha * 4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(180, 225, 255, ${0.5 * (1 - progressAlpha)})`;
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
       // 前缘发光
-      const glowGrad = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, tipW * 0.8);
-      glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-      glowGrad.addColorStop(0.5, 'rgba(100, 200, 255, 0.3)');
+      const glowGrad = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, tipW * 0.9);
+      glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+      glowGrad.addColorStop(0.3, 'rgba(140, 220, 255, 0.4)');
+      glowGrad.addColorStop(0.7, 'rgba(60, 140, 220, 0.12)');
       glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.beginPath();
-      ctx.arc(tip.x, tip.y, tipW * 0.8, 0, Math.PI * 2);
+      ctx.arc(tip.x, tip.y, tipW * 0.9, 0, Math.PI * 2);
       ctx.fillStyle = glowGrad;
       ctx.fill();
     }
@@ -385,6 +471,11 @@ export function RiverCanvas({
     <div className="w-full h-full bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden p-3 flex flex-col">
       <h2 className="text-lg font-semibold text-gray-800 mb-2 px-1 flex items-center gap-2">
         <span>🌊</span> 河流 2D 仿真视图
+        {catalystPlacements.length > 0 && (
+          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-normal">
+            {catalystPlacements.length} 个投药点
+          </span>
+        )}
       </h2>
       <div className="flex-1 rounded-lg overflow-hidden border border-gray-200 relative">
         <canvas

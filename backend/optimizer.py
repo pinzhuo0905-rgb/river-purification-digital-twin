@@ -7,6 +7,7 @@ import math
 import time
 import random
 from simulation import simulate_single_river
+from water_quality import classify_water_quality
 
 # ═══════════════════════════════════════════════════════════════
 #  Data classes
@@ -37,11 +38,12 @@ class DosingPoint:
 
 
 class ParetoPoint:
-    def __init__(self, dosing_count, final_concentration, dosing_points, class_i_met, compute_time_ms):
+    def __init__(self, dosing_count, final_concentration, dosing_points, class_i_met, water_quality_class, compute_time_ms):
         self.dosing_count = dosing_count
         self.final_concentration = final_concentration
         self.dosing_points = dosing_points
         self.class_i_met = class_i_met
+        self.water_quality_class = water_quality_class
         self.compute_time_ms = compute_time_ms
 
     def to_dict(self):
@@ -50,6 +52,7 @@ class ParetoPoint:
             "final_concentration": self.final_concentration,
             "dosing_points": [dp.to_dict() for dp in self.dosing_points],
             "class_i_met": self.class_i_met,
+            "water_quality_class": self.water_quality_class,
             "compute_time_ms": self.compute_time_ms,
         }
 
@@ -79,7 +82,6 @@ class OptimizationResult:
 #  Constants
 # ═══════════════════════════════════════════════════════════════
 
-CLASS_I_THRESHOLD = 0.10
 DOSE_CANDIDATES = [1, 1.5, 2, 3, 5]
 ACTIVITY_CANDIDATES = [0.5, 0.8]
 
@@ -259,9 +261,11 @@ def optimize_dosing(request):
     params = request.params
     max_n = request.max_dosing_points
     grid_size = request.position_grid_size
+    pollutant_type = params.get("pollutantType", "organic_macromolecule")
 
     # Baseline (no catalyst)
     baseline = _final_conc(params, [])
+    base_assessment = classify_water_quality(pollutant_type, baseline)
 
     pareto = []
     prev_best = []
@@ -274,12 +278,14 @@ def optimize_dosing(request):
         refined = _nelder_mead_refine(params, combined)
 
         final_c = _final_conc(params, refined)
+        assessment = classify_water_quality(pollutant_type, final_c)
 
         pareto.append(ParetoPoint(
             dosing_count=n,
             final_concentration=final_c,
             dosing_points=refined,
-            class_i_met=final_c < CLASS_I_THRESHOLD,
+            class_i_met=assessment["class_i_met"],
+            water_quality_class=assessment["class"],
             compute_time_ms=(time.perf_counter() - tn0) * 1000,
         ))
 
@@ -296,7 +302,8 @@ def optimize_dosing(request):
             dosing_count=0,
             final_concentration=baseline,
             dosing_points=[],
-            class_i_met=baseline < CLASS_I_THRESHOLD,
+            class_i_met=base_assessment["class_i_met"],
+            water_quality_class=base_assessment["class"],
             compute_time_ms=0,
         )
 

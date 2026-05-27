@@ -32,7 +32,13 @@
 // ═══════════════════════════════════════════════════════════════
 
 /** 污染物种类 */
-export type PollutantType = 'organic_macromolecule' | 'sediment_algae';
+export type PollutantType =
+  | 'organic_macromolecule'   // 大分子有机物
+  | 'sediment_algae'          // 泥沙水藻
+  | 'heavy_metal'             // 重金属离子
+  | 'petroleum_hydrocarbon'   // 石油烃类
+  | 'nutrient_runoff'         // 氮磷富营养化
+  | 'microplastic';           // 微塑料
 
 /** 地形类型 */
 export type TerrainType = 'river' | 'lake';
@@ -116,9 +122,12 @@ export interface PathPointV3 {
   catalystActive: boolean;
 }
 
-/** I类地表水达标评估 */
+import { classifyWaterQuality, type WaterQualityClass } from './waterQuality';
+
+/** 多级地表水达标评估（GB3838-2002） */
 export interface WaterQualityStandard {
   classIMet: boolean;
+  waterQualityClass: WaterQualityClass;
   residualRatio: number;
   distanceToStandard?: number;
 }
@@ -171,7 +180,6 @@ interface PhysicsConstants {
   NATURAL_DECAY_BOOST: Record<PollutantType, number>;
   LAKE_WIDTH_MULTIPLIER: number;
   LAKE_DEPTH_MULTIPLIER: number;
-  CLASS_I_THRESHOLD: number;
 }
 
 const DEFAULTS: PhysicsConstants = {
@@ -182,16 +190,23 @@ const DEFAULTS: PhysicsConstants = {
   STANDARD_WIDTH_M: 10,        // 标准河宽 (m)
   STANDARD_DEPTH_M: 1.5,       // 标准水深 (m)
   NTU_COEFFICIENT: {
-    organic_macromolecule: 12,  // 大分子有机物：中等浊度贡献
+    organic_macromolecule: 12,   // 大分子有机物：中等浊度贡献
     sediment_algae: 35,          // 泥沙水藻：高浊度贡献
+    heavy_metal: 2,              // 重金属离子：溶解态几乎透明
+    petroleum_hydrocarbon: 18,   // 石油烃类：水面油膜反光，中高浊度
+    nutrient_runoff: 10,         // 氮磷富营养化：中等浊度，藻华放大
+    microplastic: 1,             // 微塑料：肉眼不可见，近乎零浊度
   },
   NATURAL_DECAY_BOOST: {
     organic_macromolecule: 1.5,  // 大分子有机物：微生物降解稍快
-    sediment_algae: 0.5,          // 泥沙：自然沉降更快（保守处理）
+    sediment_algae: 0.5,         // 泥沙：自然沉降更快（保守处理）
+    heavy_metal: 0.03,           // 重金属离子：几乎不自然降解，极其持久
+    petroleum_hydrocarbon: 0.8,  // 石油烃类：光解主导，中等降解
+    nutrient_runoff: 2.5,        // 氮磷富营养化：微生物快速吸收降解
+    microplastic: 0.01,          // 微塑料：近乎永恒，需强力催化
   },
   LAKE_WIDTH_MULTIPLIER: 4.0,
   LAKE_DEPTH_MULTIPLIER: 1.5,
-  CLASS_I_THRESHOLD: 0.10,
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -301,11 +316,11 @@ export function simulatePurification(
   );
 
   // ③ 渲染投影
-  const projected = projectToCanvas(result, gridWidth, gridHeight);
+  const projected = projectToCanvas(result, gridWidth, gridHeight, pollutantType);
 
   // ④ 支流投影 + 组装完整结果
   if (secondaryRaw) {
-    const secProjected = projectToCanvas(secondaryRaw, gridWidth, gridHeight);
+    const secProjected = projectToCanvas(secondaryRaw, gridWidth, gridHeight, pollutantType);
     projected.secondaryResult = {
       segmentOutConcentrations: secProjected.segmentOutConcentrations,
       segmentOutNtu: secProjected.segmentOutNtu,
@@ -571,6 +586,7 @@ interface IntegrationInput {
   lightIntensity: number;
   consts: PhysicsConstants;
   totalPhysicalSteps: number;
+  optimalSegmentIndex: number;
   confluenceConfig?: ConfluenceConfig;
   secondaryResult?: RawSimulationResult;
   secondarySegs?: EffectiveSegment[];
@@ -592,7 +608,8 @@ function integrate(input: IntegrationInput): IntegrationOutput {
   const {
     effectiveSegs, segLoads, catalystMap, baseNtu,
     pollutantType, lightIntensity, consts,
-    totalPhysicalSteps, confluenceConfig, secondaryResult, secondarySegs,
+    totalPhysicalSteps, optimalSegmentIndex,
+    confluenceConfig, secondaryResult, secondarySegs,
   } = input;
 
   const ntuCoeff = consts.NTU_COEFFICIENT[pollutantType];
@@ -607,29 +624,19 @@ function integrate(input: IntegrationInput): IntegrationOutput {
   concentration = clamp(concentration, 0, 1);
   let distanceM = 0;
 
-  // 搜索最优投放段（用于后续记录坐标）
-  const metrics = computeSegmentMetrics(effectiveSegs, {
-    perSegmentNtu: effectiveSegs.map(() => baseNtu),
-    perSegmentAlpha: effectiveSegs.map(() => consts.ALPHA_BASE),
-  }, catalystMap, lightIntensity);
-  const optimalSegIndex = searchOptimalSegment(metrics);
-
   for (let sIdx = 0; sIdx < effectiveSegs.length; sIdx++) {
     const seg = effectiveSegs[sIdx];
     const stepsThisSeg = Math.max(1, Math.round(totalPhysicalSteps * (seg.physicalLengthM / 1000)));
     const physicalStep = seg.physicalLengthM / stepsThisSeg;
 
-    // 段间混合：若有新排污
+    // 段间混合：若有新排污，按质量守恒 + 流量比稀释
     if (sIdx > 0) {
       const load = segLoads[sIdx];
       if (load && (load.burstMass > 0 || load.continuousRate > 0)) {
-        // 质量守恒混合：上一段出口浓度 × 该段流量 + 新排污质量
         const prevFlow = effectiveSegs[sIdx - 1].dischargeFlow;
         const thisFlow = seg.dischargeFlow;
-        const totalFlow = (prevFlow + thisFlow) / 2;
-        const newPollutantMass = load.burstMass * totalFlow;
-        const prevMass = concentration * totalFlow;
-        concentration = (prevMass + newPollutantMass) / totalFlow;
+        // 质量守恒：来自上一段的污染物质量 + 段首 burst 注入，除以当前段流量
+        concentration = concentration * (prevFlow / thisFlow) + load.burstMass;
         concentration = clamp(concentration, 0, 1);
       }
     }
@@ -715,7 +722,7 @@ function integrate(input: IntegrationInput): IntegrationOutput {
     segmentOutNtu.push(round(baseNtu + concentration * ntuCoeff, 2));
   }
 
-  return { physicsPoints, segmentOutConcentrations, segmentOutNtu, optimalSegmentIndex: optimalSegIndex };
+  return { physicsPoints, segmentOutConcentrations, segmentOutNtu, optimalSegmentIndex };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -729,10 +736,12 @@ interface RawSimulationResult {
   segmentMetrics: SegmentMetricsV3[];
   physicsPoints: PhysicsPoint[];
   optimalSegmentIndex: number;
+  segmentDirectionAngles: number[];
   secondaryResult?: {
     segmentOutConcentrations: number[];
     segmentOutNtu: number[];
     physicsPoints: PhysicsPoint[];
+    segmentDirectionAngles: number[];
   };
 }
 
@@ -740,6 +749,7 @@ function projectToCanvas(
   raw: RawSimulationResult,
   gridWidth: number,
   gridHeight: number,
+  pollutantType: PollutantType,
 ): SimulationResultV3 {
   const startX = gridWidth * 0.05;
   const startY = gridHeight * 0.5;
@@ -752,7 +762,9 @@ function projectToCanvas(
     : 1000;
   const scaleX = availableX / totalPhysicsM;
 
-  let cumulativeAngle = 0;
+  const directions = raw.segmentDirectionAngles;
+
+  let cumY = startY;
   let lastSegIndex = -1;
 
   const riverPath: PathPointV3[] = [];
@@ -763,16 +775,17 @@ function projectToCanvas(
   let foundOptimal = false;
 
   for (const pp of raw.physicsPoints) {
-    // 段变更时累加偏角
+    // 段变更时累加方向角偏移
     if (pp.segIndex !== lastSegIndex) {
-      // 取该段的 directionAngle（需要从 segmentMetrics 或其他地方获取）
-      // 这里我们通过累积所有段的方向角来近似
+      if (lastSegIndex !== -1) {
+        const angle = directions[pp.segIndex] ?? 0;
+        cumY += Math.sin((angle * Math.PI) / 180) * (gridHeight * 0.08);
+      }
       lastSegIndex = pp.segIndex;
     }
 
-    // 简化的投影：使用累计偏角
     const px = startX + pp.distanceFromOriginM * scaleX;
-    const py = startY;
+    const py = cumY;
 
     const widthPx = baseRiverWidthPx * (pp.effectiveWidth / (DEFAULTS.STANDARD_WIDTH_M));
 
@@ -808,14 +821,15 @@ function projectToCanvas(
     segmentWidthsPx.push(baseRiverWidthPx);
   }
 
-  // 水质标准评估
+  // 水质标准评估（GB3838-2002 六级分类）
   const finalConc = raw.segmentOutConcentrations[raw.segmentOutConcentrations.length - 1] ?? 1;
-  const classIMet = finalConc < DEFAULTS.CLASS_I_THRESHOLD;
+  const assessment = classifyWaterQuality(pollutantType, finalConc);
 
+  const CLASS_I_THRESHOLD = 0.10;
   let distToStd: number | undefined;
-  if (!classIMet) {
+  if (!assessment.classIMet) {
     for (let i = 0; i < riverPath.length; i++) {
-      if (riverPath[i].concentration < DEFAULTS.CLASS_I_THRESHOLD) {
+      if (riverPath[i].concentration < CLASS_I_THRESHOLD) {
         distToStd = i / riverPath.length;
         break;
       }
@@ -832,7 +846,8 @@ function projectToCanvas(
     riverWidthPx: baseRiverWidthPx,
     segmentWidthsPx,
     waterQualityStandard: {
-      classIMet,
+      classIMet: assessment.classIMet,
+      waterQualityClass: assessment.class,
       residualRatio: finalConc,
       distanceToStandard: distToStd,
     },
@@ -873,8 +888,9 @@ function runSingleRiver(
     lightIntensity, consts, totalPhysicalSteps,
   );
 
-  // A5. 段指标
+  // A5. 段指标（使用 NTU 预扫描结果）
   const metrics = computeSegmentMetrics(effectiveSegs, ntuBaseline, catalystMap, lightIntensity);
+  const optimalSegmentIndex = searchOptimalSegment(metrics);
 
   // A6. 支流有效段（用于汇合流量计算）
   let secondaryEffSegs: EffectiveSegment[] | undefined;
@@ -892,6 +908,7 @@ function runSingleRiver(
     lightIntensity,
     consts,
     totalPhysicalSteps,
+    optimalSegmentIndex,
     confluenceConfig,
     secondaryResult: secondaryData,
     secondarySegs: secondaryEffSegs,
@@ -902,7 +919,8 @@ function runSingleRiver(
     segmentOutNtu: integrated.segmentOutNtu,
     segmentMetrics: metrics,
     physicsPoints: integrated.physicsPoints,
-    optimalSegmentIndex: integrated.optimalSegmentIndex,
+    optimalSegmentIndex,
+    segmentDirectionAngles: effectiveSegs.map(s => s.directionAngle),
   };
 }
 

@@ -13,6 +13,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import type { SimulationResultV3, SegmentMetricsV3 } from '../engine/simulation';
 import type { ParetoPoint } from '../engine/optimizer';
+import type { WaterQualityClass } from '../engine/waterQuality';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
 
@@ -40,11 +41,30 @@ export interface DashboardProps {
   maxDosingPoints?: number;
   /** 设置最大投药次数 */
   onMaxDosingPointsChange?: (n: number) => void;
+  /** 目标水质等级 */
+  targetWaterClass?: WaterQualityClass;
+  /** 设置目标水质等级 */
+  onTargetWaterClassChange?: (c: WaterQualityClass) => void;
+  /** 计算所需投药量 */
+  onCalculateDose?: () => void;
+  /** 计算的所需剂量 */
+  requiredDose?: number | null;
+  /** 计算剂量的加载状态 */
+  isCalculatingDose?: boolean;
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  水质合规状态卡片（含脉冲动画）
+//  水质合规状态卡片（GB3838-2002 六级展示）
 // ═══════════════════════════════════════════════════════════════════
+
+const CLASS_STYLES: Record<string, { bg: string; border: string; badge: string; label: string }> = {
+  'I':  { bg: 'bg-emerald-50',  border: 'border-emerald-400', badge: 'bg-emerald-200 text-emerald-700', label: 'I 类 — 源头/自然保护区' },
+  'II': { bg: 'bg-blue-50',     border: 'border-blue-400',    badge: 'bg-blue-200 text-blue-700',       label: 'II 类 — 饮用水源地' },
+  'III':{ bg: 'bg-yellow-50',   border: 'border-yellow-400',  badge: 'bg-yellow-200 text-yellow-700',   label: 'III 类 — 渔业/游泳区' },
+  'IV': { bg: 'bg-orange-50',   border: 'border-orange-400',  badge: 'bg-orange-200 text-orange-700',   label: 'IV 类 — 工业用水' },
+  'V':  { bg: 'bg-red-50',      border: 'border-red-400',     badge: 'bg-red-200 text-red-700',         label: 'V 类 — 农业用水' },
+  '劣V':{ bg: 'bg-red-100',     border: 'border-red-600',     badge: 'bg-red-300 text-red-800',         label: '劣V 类 — 丧失使用功能' },
+};
 
 function WaterQualityBadge({ standard }: { standard?: SimulationResultV3['waterQualityStandard'] }) {
   if (!standard) {
@@ -55,18 +75,13 @@ function WaterQualityBadge({ standard }: { standard?: SimulationResultV3['waterQ
     );
   }
 
-  const isMet = standard.classIMet;
+  const wc = (standard as any).waterQualityClass as string | undefined;
+  const cls = CLASS_STYLES[wc ?? '劣V'] ?? CLASS_STYLES['劣V'];
   const residualPct = (standard.residualRatio * 100).toFixed(1);
+  const isMet = standard.classIMet;
 
   return (
-    <div
-      className={`relative px-4 py-3 rounded-xl border-2 backdrop-blur transition-all duration-500 ${
-        isMet
-          ? 'bg-emerald-50 border-emerald-400'
-          : 'bg-red-50 border-red-400'
-      }`}
-    >
-      {/* 达标时脉冲环 */}
+    <div className={`relative px-4 py-3 rounded-xl border-2 backdrop-blur transition-all duration-500 ${cls.bg} ${cls.border}`}>
       {isMet && (
         <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden">
           <div className="absolute inset-0 bg-emerald-400/10 animate-ping rounded-xl"
@@ -74,39 +89,33 @@ function WaterQualityBadge({ standard }: { standard?: SimulationResultV3['waterQ
         </div>
       )}
       <div className="flex items-center gap-3 relative z-10">
-        <div
-          className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
-            isMet ? 'bg-emerald-200 text-emerald-700' : 'bg-red-200 text-red-700'
-          } ${isMet ? 'animate-pulse' : ''}`}
-          style={isMet ? { animationDuration: '2s' } : {}}
-        >
-          {isMet ? '✓' : '✗'}
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${cls.badge} ${isMet ? 'animate-pulse' : ''}`}
+          style={isMet ? { animationDuration: '2s' } : {}}>
+          {wc ?? '?'}
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-gray-800">
-            {isMet ? '🎉 I 类地表水全面达标' : '⚠️ 未达 I 类地表水标准'}
+            {isMet ? '🎉 I 类地表水全面达标' : `📋 ${cls.label}`}
           </p>
           <p className="text-xs text-gray-600 mt-0.5">
             出水口残留污染物{' '}
-            <span className={isMet ? 'font-bold text-emerald-700 text-base' : 'font-bold text-red-700'}>
+            <span className={`font-bold text-base ${isMet ? 'text-emerald-700' : 'text-gray-700'}`}>
               {residualPct}%
             </span>
-            {' '}/ 标准限值 10%（GB3838-2002）
           </p>
           {standard.distanceToStandard !== undefined && !isMet && (
             <p className="text-xs text-gray-500 mt-0.5">
-              📏 预估达标距离：约 {(standard.distanceToStandard * 100).toFixed(0)}% 流程处仍需延长 {(((1 - standard.distanceToStandard) * 100).toFixed(0))}% 流程
+              📏 预估达标 I 类距离：约 {(standard.distanceToStandard * 100).toFixed(0)}% 流程处
             </p>
           )}
         </div>
-        {/* 达标指示条 */}
         <div className="w-16 h-3 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
           <div
-            className={`h-full rounded-full transition-all duration-700 ${isMet ? 'bg-emerald-500' : 'bg-red-500'}`}
+            className={`h-full rounded-full transition-all duration-700 ${isMet ? 'bg-emerald-500' : 'bg-blue-500'}`}
             style={{ width: `${Math.min(100, standard.residualRatio * 100 * 10)}%` }}
           />
         </div>
-        <span className="text-xs text-gray-500 w-12 flex-shrink-0">达标 ≤10%</span>
+        <span className="text-xs text-gray-500 w-14 flex-shrink-0">达标 ≤10%</span>
       </div>
     </div>
   );
@@ -133,9 +142,16 @@ function ParetoChart({ paretoFrontier, baselineConcentration, onSelectPoint }: P
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.3,
         pointRadius: 5,
-        pointBackgroundColor: paretoFrontier?.map(p =>
-          p.classIMet ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)'
-        ) ?? [],
+        pointBackgroundColor: paretoFrontier?.map(p => {
+          switch (p.waterQualityClass) {
+            case 'I': return 'rgb(16, 185, 129)';
+            case 'II': return 'rgb(59, 130, 246)';
+            case 'III': return 'rgb(251, 191, 36)';
+            case 'IV': return 'rgb(249, 115, 22)';
+            case 'V': return 'rgb(239, 68, 68)';
+            default: return 'rgb(153, 27, 27)';
+          }
+        }) ?? [],
         fill: true,
       },
       ...(baselineConcentration !== undefined ? [{
@@ -176,7 +192,7 @@ function ParetoChart({ paretoFrontier, baselineConcentration, onSelectPoint }: P
             if (!pt) return '';
             const lines = [
               `浓度: ${(pt.finalConcentration * 100).toFixed(1)}%`,
-              `达标: ${pt.classIMet ? '✓' : '✗'}`,
+              `水质: ${pt.waterQualityClass}${pt.classIMet ? ' ✓' : ''}`,
             ];
             for (const dp of pt.dosingPoints) {
               lines.push(
@@ -237,6 +253,11 @@ export function Dashboard({
   onSelectParetoPoint,
   maxDosingPoints,
   onMaxDosingPointsChange,
+  targetWaterClass,
+  onTargetWaterClassChange,
+  onCalculateDose,
+  requiredDose,
+  isCalculatingDose,
 }: DashboardProps) {
   // ── 动画浓度/NTU/河宽曲线数据 ──────────────────────────
   const { concLabels, concData, ntuData, widthData } = useMemo(() => {
@@ -397,6 +418,38 @@ export function Dashboard({
         </button>
       </div>
 
+      {/* ── 目标水质选择 + 反算投药量 ──────────────────────── */}
+      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200">
+        <span className="text-sm font-semibold text-emerald-700">目标水质：</span>
+        <select
+          value={targetWaterClass ?? 'II'}
+          onChange={e => onTargetWaterClassChange?.(e.target.value as WaterQualityClass)}
+          className="px-3 py-1.5 border border-emerald-300 rounded-lg text-sm font-mono bg-white"
+        >
+          <option value="I">I 类</option>
+          <option value="II">II 类</option>
+          <option value="III">III 类</option>
+          <option value="IV">IV 类</option>
+          <option value="V">V 类</option>
+        </select>
+        <button
+          onClick={onCalculateDose}
+          disabled={isCalculatingDose}
+          className={`px-5 py-2 rounded-lg text-sm font-bold text-white transition-all ${
+            isCalculatingDose
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-emerald-600 hover:bg-emerald-700 active:scale-95 shadow-md'
+          }`}
+        >
+          {isCalculatingDose ? '计算中...' : '计算所需投药量'}
+        </button>
+        {requiredDose !== null && requiredDose !== undefined && (
+          <span className="text-sm font-mono text-emerald-800">
+            需要剂量: <span className="font-bold text-base">{requiredDose.toFixed(1)}</span>
+          </span>
+        )}
+      </div>
+
       {/* ── 帕累托曲线 ──────────────────────────────────── */}
       {paretoFrontier && paretoFrontier.length > 0 && (
         <>
@@ -415,7 +468,7 @@ export function Dashboard({
                 <tr className="bg-indigo-100 text-gray-600">
                   <th className="px-2 py-1.5 text-left rounded-tl-lg">投药次数 N</th>
                   <th className="px-2 py-1.5 text-right">最终浓度</th>
-                  <th className="px-2 py-1.5 text-center">达标</th>
+                  <th className="px-2 py-1.5 text-center">水质</th>
                   <th className="px-2 py-1.5 text-left">投药明细（段 · 位置 · 剂量 · 活性）</th>
                   <th className="px-2 py-1.5 text-right rounded-tr-lg">总投药量</th>
                 </tr>
@@ -443,8 +496,10 @@ export function Dashboard({
                       }`}>
                         {(p.finalConcentration * 100).toFixed(1)}%
                       </td>
-                      <td className="px-2 py-1.5 text-center">
-                        {p.classIMet ? <span className="text-emerald-500">✓</span> : <span className="text-red-400">✗</span>}
+                      <td className="px-2 py-1.5 text-center font-mono font-bold">
+                        <span className={p.classIMet ? 'text-emerald-600' : p.waterQualityClass === 'II' || p.waterQualityClass === 'III' ? 'text-yellow-600' : 'text-red-500'}>
+                          {p.waterQualityClass}
+                        </span>
                       </td>
                       <td className="px-2 py-1.5 font-mono text-gray-600">
                         {p.dosingPoints.map((dp, j) => (

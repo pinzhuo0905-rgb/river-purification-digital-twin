@@ -40,6 +40,10 @@ from schemas import (
     ParetoPointSchema,
     OptimizeRequest,
     OptimizeResponse,
+    ClassifyRequest,
+    ClassifyResponse,
+    CalculateDoseRequest,
+    CalculateDoseResponse,
 )
 from logging_config import setup_logging, get_logger, RequestLoggingMiddleware
 from exceptions import register_exception_handlers
@@ -754,6 +758,7 @@ async def run_simulation(body: SimulateRequest):
     wqs = result["waterQualityStandard"]
     water_quality_standard = WaterQualityStandardSchema(
         class_i_met=wqs["classIMet"],
+        water_quality_class=wqs.get("waterQualityClass", "劣V"),
         residual_ratio=wqs["finalConcentration"],
         distance_to_standard=wqs["distanceToStandard"] if wqs["distanceToStandard"] >= 0 else None,
     )
@@ -854,6 +859,7 @@ async def optimize_dosing_endpoint(body: OptimizeRequest):
                     for dp in p.dosing_points
                 ],
                 class_i_met=p.class_i_met,
+                water_quality_class=p.water_quality_class,
                 compute_time_ms=p.compute_time_ms,
             )
             for p in result.pareto_frontier
@@ -871,10 +877,71 @@ async def optimize_dosing_endpoint(body: OptimizeRequest):
                 for dp in result.optimal.dosing_points
             ],
             class_i_met=result.optimal.class_i_met,
+            water_quality_class=result.optimal.water_quality_class,
             compute_time_ms=result.optimal.compute_time_ms,
         ),
         baseline_concentration=result.baseline_concentration,
         compute_time_ms=round(elapsed_ms, 3),
+    )
+
+
+# ═══════════════════════════════════════════════════════════════
+#  水质分类与反算投药
+# ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/classify", response_model=ClassifyResponse)
+async def classify_water_endpoint(body: ClassifyRequest):
+    """Feature A: 输入污染物类型 + 残余浓度 -> 返回水质等级"""
+    from water_quality import classify_water_quality
+
+    result = classify_water_quality(body.pollutant_type, body.residual_ratio)
+    return ClassifyResponse(
+        class_=result["class"],
+        class_i_met=result["class_i_met"],
+        residual_ratio=result["residual_ratio"],
+        class_threshold=result["class_threshold"],
+    )
+
+
+@app.post("/api/calculate-dose", response_model=CalculateDoseResponse)
+async def calculate_dose_endpoint(body: CalculateDoseRequest):
+    """Feature B: 输入目标水质等级 -> 返回所需催化剂剂量"""
+    from water_quality import calculate_required_dose
+    from simulation import run_simulation
+
+    # Adapter: 将 camelCase params dict 转为 run_simulation 所需的 snake_case kwargs
+    def simulate_adapter(p: dict) -> dict:
+        return run_simulation(
+            grid_width=p.get("gridWidth", 400),
+            grid_height=p.get("gridHeight", 150),
+            light_intensity=p.get("lightIntensity", 1.0),
+            base_ntu=p.get("baseNtu", 5),
+            pollutant_type=p.get("pollutantType", "organic_macromolecule"),
+            segments=p.get("segments", []),
+            pollutant_discharges=p.get("pollutantDischarges"),
+            catalyst_placements=p.get("catalystPlacements", []),
+            secondary_segments=p.get("secondarySegments"),
+            secondary_discharges=p.get("secondaryDischarges"),
+            confluence_config=p.get("confluenceConfig"),
+        )
+
+    params = {
+        "gridWidth": 400,
+        "gridHeight": 150,
+        "lightIntensity": body.light_intensity,
+        "baseNtu": body.base_ntu,
+        "pollutantType": body.pollutant_type,
+        "segments": [s.model_dump() for s in body.segments],
+        "pollutantDischarges": None,
+    }
+
+    result = calculate_required_dose(simulate_adapter, params, body.pollutant_type, body.target_class)
+    return CalculateDoseResponse(
+        required_dose_ratio=result["required_dose_ratio"],
+        final_concentration=result["final_concentration"],
+        class_i_met=result["class_i_met"],
+        found=result["found"],
+        iterations=result["iterations"],
     )
 
 

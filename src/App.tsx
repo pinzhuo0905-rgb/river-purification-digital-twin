@@ -12,6 +12,7 @@ import {
   type CatalystPlacement,
 } from './engine/simulation';
 import type { ParetoPoint } from './engine/optimizer';
+import type { WaterQualityClass } from './engine/waterQuality';
 
 // ── 后端 API ─────────────────────────────────────────────────
 import {
@@ -110,6 +111,9 @@ function App() {
   const [baselineConcentration, setBaselineConcentration] = useState<number | undefined>();
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [maxDosingPoints, setMaxDosingPoints] = useState(5);
+  const [targetWaterClass, setTargetWaterClass] = useState<WaterQualityClass>('II');
+  const [requiredDose, setRequiredDose] = useState<number | null>(null);
+  const [isCalculatingDose, setIsCalculatingDose] = useState(false);
 
   // 向后兼容：catalystPlacements 为空时从旧 catalyst 全局参数生成
   const effectivePlacements: CatalystPlacement[] = useMemo(() => {
@@ -346,6 +350,7 @@ function App() {
           doseRatio: dp.dose_ratio,
         })),
         classIMet: p.class_i_met,
+        waterQualityClass: p.water_quality_class ?? '劣V',
         computeTimeMs: p.compute_time_ms,
       }));
       setParetoFrontier(mappedPareto);
@@ -379,6 +384,41 @@ function App() {
     }));
     setCatalystPlacements(placements);
   }, []);
+
+  // ── 反向投药计算 ──────────────────────────────────────────
+  const handleCalculateDose = useCallback(async () => {
+    setIsCalculatingDose(true);
+    setRequiredDose(null);
+    try {
+      const res = await fetch('http://localhost:8000/api/calculate-dose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_class: targetWaterClass,
+          pollutant_type: pollutantType,
+          segments: segments.map(s => ({
+            id: s.id,
+            velocity: s.velocity,
+            directionAngle: s.directionAngle,
+            length: s.length,
+            depth: s.depth ?? 1.5,
+            width: s.width ?? 1.0,
+          })),
+          light_intensity: light,
+          base_ntu: turbidity,
+        }),
+      });
+      const data = await res.json();
+      setRequiredDose(data.required_dose_ratio);
+      if (data.required_dose_ratio > 0) {
+        setDoseRatio(data.required_dose_ratio);
+      }
+    } catch (err) {
+      console.error('剂量计算失败:', err);
+    } finally {
+      setIsCalculatingDose(false);
+    }
+  }, [targetWaterClass, pollutantType, segments, light, turbidity]);
 
   // ── 阶段一：保存场景 ──────────────────────────────────────
   const handleSave = useCallback(async () => {
@@ -967,6 +1007,11 @@ function App() {
                 onSelectParetoPoint={handleSelectParetoPoint}
                 maxDosingPoints={maxDosingPoints}
                 onMaxDosingPointsChange={setMaxDosingPoints}
+                targetWaterClass={targetWaterClass}
+                onTargetWaterClassChange={setTargetWaterClass}
+                requiredDose={requiredDose}
+                isCalculatingDose={isCalculatingDose}
+                onCalculateDose={handleCalculateDose}
               />
             )}
           </div>
