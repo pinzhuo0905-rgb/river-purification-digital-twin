@@ -50,7 +50,8 @@ export type DischargeType = 'continuous' | 'burst';
 export interface RiverSegmentV3 {
   id: number;
   velocity: number;               // 参考流速 (m/s)，实际流速由连续性方程动态计算
-  directionAngle: number;         // 流向偏角 (度)
+  angle?: number;                 // 相对上一段的偏转角 (度)，0 = 沿当前方向延伸
+  directionAngle?: number;        // @deprecated 兼容旧场景/API，等价于 angle
   length: number;                 // 相对长度 (所有段之和 = 1)
   depth: number;                  // 水深 (m)
   width: number;                  // 河宽系数 (0.5~2.0)，1 = 标准宽 10m
@@ -89,14 +90,17 @@ export interface SimulationParamsV3 {
   gridWidth: number;
   gridHeight: number;
   lightIntensity: number;         // I₀ (0.1~3.0)
-  baseNtu: number;                // 基础浊度 (0~100)
-  pollutantType: PollutantType;
+  baseNtu?: number;               // 基础浊度 (0~100)
+  temperature?: number;           // 水温 (°C)，默认 25°C
+  pollutantType?: PollutantType;
   segments: RiverSegmentV3[];
   pollutantDischarges?: PollutantDischarge[];
   catalystPlacements?: CatalystPlacement[];
   secondarySegments?: RiverSegmentV3[];
   secondaryDischarges?: PollutantDischarge[];
   confluenceConfig?: ConfluenceConfig;
+  catalystEfficiency?: number;
+  turbidity?: number;
 }
 
 /** 各段反应效率指标 */
@@ -122,7 +126,12 @@ export interface PathPointV3 {
   catalystActive: boolean;
 }
 
-import { classifyWaterQuality, type WaterQualityClass } from './waterQuality';
+import {
+  assessSegmentWaterQuality,
+  calculateWQI,
+  classifyWaterQuality,
+  type WaterQualityClass,
+} from './waterQuality';
 
 /** 多级地表水达标评估（GB3838-2002） */
 export interface WaterQualityStandard {
@@ -130,6 +139,13 @@ export interface WaterQualityStandard {
   waterQualityClass: WaterQualityClass;
   residualRatio: number;
   distanceToStandard?: number;
+  segmentAssessments?: Array<{
+    segmentIndex: number;
+    classIMet: boolean;
+    waterQualityClass: WaterQualityClass;
+    residualRatio: number;
+  }>;
+  wqi?: number;
 }
 
 /** 仿真结果 */
@@ -158,9 +174,9 @@ export interface SimulationResultV3 {
 /** @deprecated 使用 RiverSegmentV3 */
 export interface RiverSegment extends RiverSegmentV3 {}
 /** @deprecated 使用 SimulationParamsV3 */
-export interface SimulationParams extends SimulationParamsV3 {
-  catalystEfficiency?: number;
-  turbidity?: number;
+export interface SimulationParams extends Omit<SimulationParamsV3, 'baseNtu' | 'pollutantType'> {
+  baseNtu?: number;
+  pollutantType?: PollutantType;
 }
 /** @deprecated 使用 SimulationResultV3 */
 export interface SimulationResult extends SimulationResultV3 {}
@@ -180,6 +196,8 @@ interface PhysicsConstants {
   NATURAL_DECAY_BOOST: Record<PollutantType, number>;
   LAKE_WIDTH_MULTIPLIER: number;
   LAKE_DEPTH_MULTIPLIER: number;
+  ACTIVATION_ENERGY_OVER_R: number;
+  REFERENCE_TEMPERATURE_K: number;
 }
 
 const DEFAULTS: PhysicsConstants = {
@@ -207,6 +225,8 @@ const DEFAULTS: PhysicsConstants = {
   },
   LAKE_WIDTH_MULTIPLIER: 4.0,
   LAKE_DEPTH_MULTIPLIER: 1.5,
+  ACTIVATION_ENERGY_OVER_R: 4500,
+  REFERENCE_TEMPERATURE_K: 298.15,
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -224,6 +244,10 @@ interface EffectiveSegment {
   dischargeFlow: number;        // Q (m³/s)
   isLake: boolean;
   directionAngle: number;
+}
+
+export function getSegmentAngle(seg: Pick<RiverSegmentV3, 'angle' | 'directionAngle'>): number {
+  return seg.angle ?? seg.directionAngle ?? 0;
 }
 
 /** 催化剂按段条目 */
@@ -271,6 +295,18 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
 }
 
+function temperatureFactor(celsius: number, consts: PhysicsConstants): number {
+  const tempK = clamp(celsius + 273.15, 273.15, 323.15);
+  return Math.exp(
+    -consts.ACTIVATION_ENERGY_OVER_R *
+    ((1 / tempK) - (1 / consts.REFERENCE_TEMPERATURE_K)),
+  );
+}
+
+function supportsSettling(type: PollutantType): boolean {
+  return type === 'sediment_algae' || type === 'microplastic';
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  公共入口
 // ═══════════════════════════════════════════════════════════════
@@ -291,6 +327,7 @@ export function simulatePurification(
   // 向后兼容：支持旧 SimulationParams 未传必填字段的场景
   const baseNtu = params.baseNtu ?? (params as SimulationParams).turbidity ?? 5;
   const pollutantType = params.pollutantType || 'organic_macromolecule';
+  const temperature = params.temperature ?? 25;
 
   const TOTAL_RIVER_M = 1000;
   const totalPhysicalSteps = 200;
@@ -303,7 +340,7 @@ export function simulatePurification(
       : [{ segmentIndex: 0, positionRatio: 0, pollutantType, mass: 1.0, dischargeType: 'continuous' as const }];
     secondaryRaw = runSingleRiver(
       secondarySegments, secDischarges, catalystPlacements ?? [],
-      baseNtu, pollutantType, lightIntensity, TOTAL_RIVER_M, totalPhysicalSteps,
+      baseNtu, pollutantType, lightIntensity, temperature, TOTAL_RIVER_M, totalPhysicalSteps,
       constants, undefined, undefined, undefined,
     );
   }
@@ -311,7 +348,7 @@ export function simulatePurification(
   // ② 主河仿真（传入支流原始结果用于汇合混合）
   const result = runSingleRiver(
     segments, pollutantDischarges, catalystPlacements ?? [],
-    baseNtu, pollutantType, lightIntensity, TOTAL_RIVER_M, totalPhysicalSteps,
+    baseNtu, pollutantType, lightIntensity, temperature, TOTAL_RIVER_M, totalPhysicalSteps,
     constants, confluenceConfig, secondaryRaw, secondarySegments,
   );
 
@@ -347,6 +384,7 @@ function computeEffectiveSegments(
   consts: PhysicsConstants,
   totalRiverM: number,
 ): EffectiveSegment[] {
+  const totalRelativeLength = Math.max(0.0001, segments.reduce((acc, seg) => acc + Math.max(seg.length, 0), 0));
   return segments.map((seg, idx) => {
     const isLake = seg.terrain === 'lake';
     // width: 系数 × 标准宽(10m)；depth: 直接使用物理米
@@ -357,7 +395,7 @@ function computeEffectiveSegments(
     // 否则从 segment.velocity 反推流量 Q = v × w × d，再代入连续性方程
     const Q = seg.referenceDischarge ?? seg.velocity * effWidth * effDepth;
     const effVelocity = Math.max(0.05, Q / (effWidth * effDepth));
-    const physicalLengthM = seg.length * totalRiverM;
+    const physicalLengthM = (Math.max(seg.length, 0.0001) / totalRelativeLength) * totalRiverM;
     return {
       index: idx,
       physicalLengthM,
@@ -367,7 +405,7 @@ function computeEffectiveSegments(
       crossSectionArea: effWidth * effDepth,
       dischargeFlow: Q,
       isLake,
-      directionAngle: seg.directionAngle,
+      directionAngle: getSegmentAngle(seg),
     };
   });
 }
@@ -466,7 +504,7 @@ function estimateNTUBaseline(
  */
 function computeDischargeLoads(
   discharges: PollutantDischarge[] | undefined,
-  segments: RiverSegmentV3[],
+  _segments: RiverSegmentV3[],
   effectiveSegs: EffectiveSegment[],
   _totalRiverM: number,
 ): DischargeLoad[] {
@@ -515,6 +553,7 @@ function computeSegmentMetrics(
   ntuBaseline: NTUBaseline,
   catalystMap: CatalystMap,
   lightIntensity: number,
+  tempFactor: number,
 ): SegmentMetricsV3[] {
   return effectiveSegs.map((seg, idx) => {
     const alpha = ntuBaseline.perSegmentAlpha[idx] ?? ntuBaseline.perSegmentAlpha[0];
@@ -522,10 +561,10 @@ function computeSegmentMetrics(
     const residenceTime = seg.physicalLengthM / seg.effectiveVelocity;
 
     const entries = catalystMap.get(idx) ?? [];
-    // 取该段第一个投放点的活性×投药比（若有多个，后续积分时按 withinSegmentRatio 逐条激活）
-    const kLocal = entries.length > 0
-      ? entries[0].activity * entries[0].doseRatio * I_eff
-      : 0;
+    const kLocal = entries.reduce(
+      (sum, entry) => sum + entry.activity * entry.doseRatio * I_eff * tempFactor,
+      0,
+    );
     const reactionScore = kLocal * residenceTime;
 
     return {
@@ -584,6 +623,7 @@ interface IntegrationInput {
   baseNtu: number;
   pollutantType: PollutantType;
   lightIntensity: number;
+  temperature: number;
   consts: PhysicsConstants;
   totalPhysicalSteps: number;
   optimalSegmentIndex: number;
@@ -607,13 +647,17 @@ interface IntegrationOutput {
 function integrate(input: IntegrationInput): IntegrationOutput {
   const {
     effectiveSegs, segLoads, catalystMap, baseNtu,
-    pollutantType, lightIntensity, consts,
+    pollutantType, lightIntensity, temperature, consts,
     totalPhysicalSteps, optimalSegmentIndex,
     confluenceConfig, secondaryResult, secondarySegs,
   } = input;
 
   const ntuCoeff = consts.NTU_COEFFICIENT[pollutantType];
   const naturalBoost = consts.NATURAL_DECAY_BOOST[pollutantType];
+  const tempFactor = temperatureFactor(temperature, consts);
+  const settlingEnabled = supportsSettling(pollutantType);
+  const depositionBase = pollutantType === 'sediment_algae' ? 0.0012 : 0.00035;
+  const resuspensionBase = pollutantType === 'sediment_algae' ? 0.0020 : 0.00075;
 
   const physicsPoints: PhysicsPoint[] = [];
   const segmentOutConcentrations: number[] = [];
@@ -622,6 +666,7 @@ function integrate(input: IntegrationInput): IntegrationOutput {
   // 初始浓度
   let concentration = segLoads[0]?.burstMass ?? 1.0;
   concentration = clamp(concentration, 0, 1);
+  let bedStore = 0;
   let distanceM = 0;
 
   for (let sIdx = 0; sIdx < effectiveSegs.length; sIdx++) {
@@ -646,37 +691,47 @@ function integrate(input: IntegrationInput): IntegrationOutput {
 
     for (let step = 0; step < stepsThisSeg; step++) {
       const progressRatio = step / stepsThisSeg;
-
-      // ── 催化剂激活判定 ──────────────────────────
-      // 段内首个满足 withinSegmentRatio 条件的条目生效
-      let catalystActive = false;
-      let activeCatalyst: CatalystEntry | null = null;
-      for (const entry of catalystsInSeg) {
-        if (progressRatio >= entry.withinSegmentRatio) {
-          catalystActive = true;
-          activeCatalyst = entry;
-          break;
-        }
-      }
-
-      // ── 动态 NTU ────────────────────────────────
-      const currentNtu = baseNtu + concentration * ntuCoeff;
-      const alpha = consts.ALPHA_BASE + currentNtu * consts.ALPHA_PER_NTU;
-
-      // ── 朗伯-比尔有效光强 ───────────────────────
-      const I_eff = lightIntensity * Math.exp(-alpha * seg.effectiveDepth);
-
-      // ── 降解常数 ────────────────────────────────
-      // 催化剂激活：k = activity × doseRatio × I_eff
-      // 自然降解：k = K_PHOTOLYSIS × I_eff + K_BIODEGRADATION × boost
-      const k_step = catalystActive && activeCatalyst
-        ? activeCatalyst.activity * activeCatalyst.doseRatio * I_eff
-        : consts.K_PHOTOLYSIS * I_eff + consts.K_BIODEGRADATION * naturalBoost;
-
-      // ── 步长时间 & 指数衰减 ─────────────────────
-      // 量纲：physicalStep (m) / effectiveVelocity (m/s) = 秒 ✓
       const stepTime = physicalStep / seg.effectiveVelocity;
-      concentration *= Math.exp(-k_step * stepTime);
+      const stepRatio = 1 / stepsThisSeg;
+
+      const computeK = (conc: number, ratio: number) => {
+        const ntu = baseNtu + conc * ntuCoeff;
+        const alpha = consts.ALPHA_BASE + ntu * consts.ALPHA_PER_NTU;
+        const I_eff = lightIntensity * Math.exp(-alpha * seg.effectiveDepth);
+        const naturalK = (consts.K_PHOTOLYSIS * I_eff + consts.K_BIODEGRADATION * naturalBoost) * tempFactor;
+        let catalystK = 0;
+
+        for (const entry of catalystsInSeg) {
+          if (ratio < entry.withinSegmentRatio) continue;
+          const distanceFromDose = Math.max(0, (ratio - entry.withinSegmentRatio) * seg.physicalLengthM);
+          const elapsedSinceDose = distanceFromDose / seg.effectiveVelocity;
+          const uStar = Math.max(0.005, 0.05 * seg.effectiveVelocity);
+          const lateralDiffusion = 0.6 * seg.effectiveDepth * uStar;
+          const sigmaY = Math.sqrt(Math.max(0, 2 * lateralDiffusion * elapsedSinceDose));
+          const coverage = clamp(sigmaY / Math.max(0.001, seg.effectiveWidth * 0.5), 0.12, 1);
+          catalystK += entry.activity * entry.doseRatio * I_eff * coverage * tempFactor;
+        }
+
+        return { k: naturalK + catalystK, catalystActive: catalystK > 0 };
+      };
+
+      // 二阶指数中点法：用中点浓度重估 NTU、光强和总反应常数，避免强反应下线性 RK2 过冲。
+      const k1Info = computeK(concentration, progressRatio);
+      const midConc = clamp(concentration * Math.exp(-k1Info.k * stepTime * 0.5), 0, 1);
+      const k2Info = computeK(midConc, Math.min(1, progressRatio + stepRatio / 2));
+      concentration = clamp(concentration * Math.exp(-k2Info.k * stepTime), 0, 1);
+
+      if (settlingEnabled && seg.effectiveVelocity < 0.3) {
+        const depositionRate = depositionBase * (0.3 - seg.effectiveVelocity) / 0.3;
+        const deposited = Math.min(concentration, concentration * depositionRate * stepTime);
+        concentration -= deposited;
+        bedStore = clamp(bedStore + deposited, 0, 1);
+      } else if (settlingEnabled && seg.effectiveVelocity > 1.5 && bedStore > 0) {
+        const resuspensionRate = resuspensionBase * Math.min(2, (seg.effectiveVelocity - 1.5) / 1.5);
+        const resuspended = Math.min(bedStore, bedStore * resuspensionRate * stepTime);
+        bedStore -= resuspended;
+        concentration = clamp(concentration + resuspended, 0, 1);
+      }
 
       // 连续排污贡献（该段总质量均匀分配到每步）
       if (segLoads[sIdx]?.continuousRate > 0) {
@@ -707,12 +762,13 @@ function integrate(input: IntegrationInput): IntegrationOutput {
       }
 
       distanceM += physicalStep;
+      const currentNtu = baseNtu + concentration * ntuCoeff;
 
       physicsPoints.push({
         distanceFromOriginM: round(distanceM, 2),
         concentration: round(concentration, 6),
         ntu: round(currentNtu, 2),
-        catalystActive,
+        catalystActive: k1Info.catalystActive || k2Info.catalystActive,
         segIndex: sIdx,
         effectiveWidth: seg.effectiveWidth,
       });
@@ -824,6 +880,8 @@ function projectToCanvas(
   // 水质标准评估（GB3838-2002 六级分类）
   const finalConc = raw.segmentOutConcentrations[raw.segmentOutConcentrations.length - 1] ?? 1;
   const assessment = classifyWaterQuality(pollutantType, finalConc);
+  const segmentAssessments = assessSegmentWaterQuality(pollutantType, raw.segmentOutConcentrations);
+  const wqi = calculateWQI(pollutantType, raw.segmentOutConcentrations, raw.segmentOutNtu);
 
   const CLASS_I_THRESHOLD = 0.10;
   let distToStd: number | undefined;
@@ -850,6 +908,13 @@ function projectToCanvas(
       waterQualityClass: assessment.class,
       residualRatio: finalConc,
       distanceToStandard: distToStd,
+      segmentAssessments: segmentAssessments.map(item => ({
+        segmentIndex: item.segmentIndex,
+        classIMet: item.classIMet,
+        waterQualityClass: item.class,
+        residualRatio: item.residualRatio,
+      })),
+      wqi,
     },
     segmentOutNtu: raw.segmentOutNtu,
   };
@@ -866,6 +931,7 @@ function runSingleRiver(
   baseNtu: number,
   pollutantType: PollutantType,
   lightIntensity: number,
+  temperature: number,
   totalRiverM: number,
   totalPhysicalSteps: number,
   consts: PhysicsConstants,
@@ -889,7 +955,13 @@ function runSingleRiver(
   );
 
   // A5. 段指标（使用 NTU 预扫描结果）
-  const metrics = computeSegmentMetrics(effectiveSegs, ntuBaseline, catalystMap, lightIntensity);
+  const metrics = computeSegmentMetrics(
+    effectiveSegs,
+    ntuBaseline,
+    catalystMap,
+    lightIntensity,
+    temperatureFactor(temperature, consts),
+  );
   const optimalSegmentIndex = searchOptimalSegment(metrics);
 
   // A6. 支流有效段（用于汇合流量计算）
@@ -906,6 +978,7 @@ function runSingleRiver(
     baseNtu,
     pollutantType,
     lightIntensity,
+    temperature,
     consts,
     totalPhysicalSteps,
     optimalSegmentIndex,
