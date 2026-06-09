@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>河流光催化净化动态仿真 · 项目展示</title>
+<style>
+:root{
+  --ios-bg:#eef7ff; --ios-bg-end:#f8fbff;
+  --ios-surface:rgba(255,255,255,0.62); --ios-surface-strong:rgba(255,255,255,0.78);
+  --ios-stroke:rgba(255,255,255,0.86); --ios-stroke-cool:rgba(101,163,255,0.22);
+  --ios-ink:#102033; --ios-muted:#64748b; --ios-faint:#8fa4b8;
+  --ios-blue:#007aff; --ios-cyan:#32ade6; --ios-mint:#34c759; --ios-teal:#30d5c8;
+  --ios-yellow:#ffcc00; --ios-orange:#ff9500; --ios-red:#ff3b30;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Noto Sans SC","PingFang SC","Hiragino Sans GB",Inter,-apple-system,
+    BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  color:var(--ios-ink);
+  background:linear-gradient(160deg,var(--ios-bg),var(--ios-bg-end));
+  overflow:hidden;
+}
+#water{position:fixed;inset:0;z-index:0;pointer-events:none}
+#deck{position:relative;z-index:1;height:100vh;width:100vw}
+.slide{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:6vh 8vw;opacity:0;transition:opacity .5s ease;
+}
+.slide.active{display:flex;opacity:1;animation:fadeInUp .6s ease both}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.glass{
+  background:var(--ios-surface);backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  border:1px solid var(--ios-stroke);border-radius:22px;
+  box-shadow:0 24px 70px rgba(0,122,255,.14),inset 0 1px 0 rgba(255,255,255,.5);
+  padding:32px 40px;
+}
+h1{font-size:clamp(28px,4.4vw,56px);font-weight:800;letter-spacing:.02em;
+  background:linear-gradient(90deg,var(--ios-blue),var(--ios-teal));
+  -webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.15}
+h2{font-size:clamp(22px,3.2vw,40px);font-weight:800;color:var(--ios-ink);margin-bottom:.5em}
+p,li{font-size:clamp(15px,1.7vw,22px);line-height:1.8;color:var(--ios-ink)}
+.muted{color:var(--ios-muted)}
+.subject-tag{display:inline-block;font-size:14px;font-weight:700;color:var(--ios-blue);
+  background:rgba(0,122,255,.1);border:1px solid var(--ios-stroke-cool);
+  border-radius:999px;padding:4px 14px;margin-bottom:18px}
+.formula{font-family:Inter,system-ui;font-weight:700;
+  font-size:clamp(32px,6vw,84px);letter-spacing:.01em;
+  background:linear-gradient(90deg,var(--ios-blue),var(--ios-cyan));
+  -webkit-background-clip:text;background-clip:text;color:transparent;margin:.3em 0}
+.bignum{font-family:Inter,system-ui;font-weight:800;font-size:clamp(40px,8vw,120px);
+  color:var(--ios-mint);line-height:1}
+ul{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:10px}
+ul li::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;
+  background:var(--ios-cyan);margin-right:12px;vertical-align:middle}
+.center{text-align:center}
+#progress{position:fixed;left:0;bottom:0;height:4px;width:0;z-index:3;
+  background:linear-gradient(90deg,var(--ios-blue),var(--ios-mint));transition:width .4s ease}
+#pageno{position:fixed;right:18px;bottom:14px;z-index:3;font-size:13px;
+  font-family:Inter;color:var(--ios-faint)}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+/* —— 黄色小人吉祥物 —— */
+.mascot{width:clamp(90px,11vw,150px);height:auto;filter:drop-shadow(0 10px 18px rgba(0,122,255,.18))}
+.mascot .body{fill:#ffce3a}
+.mascot .belly{fill:#ffd964}
+.mascot .eye{fill:#16324d}
+.mascot .mouth{fill:none;stroke:#16324d;stroke-width:5;stroke-linecap:round}
+.mascot .cheek{fill:rgba(255,99,71,.25)}
+.mascot .brow{stroke:#16324d;stroke-width:5;stroke-linecap:round}
+.mascot[data-expr="dirty"] .body{fill:#bfa94a}
+.mascot[data-expr="dirty"] .belly{fill:#cdb95a}
+.mascot.corner{position:absolute;right:4vw;bottom:6vh;z-index:2}
+</style>
+</head>
+<body>
+<canvas id="water"></canvas>
+<template id="mascot-tpl">
+  <svg class="mascot" viewBox="0 0 200 200" data-expr="happy" aria-label="吉祥物小人">
+    <ellipse class="body" cx="100" cy="120" rx="72" ry="62"/>
+    <ellipse class="belly" cx="100" cy="138" rx="46" ry="36"/>
+    <g class="face">
+      <circle class="eye left-eye" cx="78" cy="108" r="8"/>
+      <circle class="eye right-eye" cx="122" cy="108" r="8"/>
+      <path class="brow left-brow" d="M68 92 q10 -6 20 0"/>
+      <path class="brow right-brow" d="M112 92 q10 -6 20 0"/>
+      <path class="mouth" d="M82 134 q18 18 36 0"/>
+      <ellipse class="cheek" cx="66" cy="126" rx="9" ry="6"/>
+      <ellipse class="cheek" cx="134" cy="126" rx="9" ry="6"/>
+    </g>
+  </svg>
+</template>
+<main id="deck">
+  <!-- 幻灯片 section 由后续任务插入到这里 -->
+  <section class="slide active"><div class="glass center"><h1>占位封面</h1></div></section>
+</main>
+<div id="progress"></div>
+<div id="pageno">1 / 1</div>
+<script>
+const deck = document.getElementById('deck');
+let slides = [...deck.querySelectorAll('.slide')];
+let idx = 0;
+function show(n){
+  idx = Math.max(0, Math.min(slides.length-1, n));
+  slides.forEach((s,i)=>s.classList.toggle('active', i===idx));
+  document.getElementById('progress').style.width =
+    ((idx+1)/slides.length*100)+'%';
+  document.getElementById('pageno').textContent = (idx+1)+' / '+slides.length;
+}
+function next(){ show(idx+1); }
+function prev(){ show(idx-1); }
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); next(); }
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); prev(); }
+  else if(e.key==='Home'){ show(0); }
+  else if(e.key==='End'){ show(slides.length-1); }
+  else if(e.key.toLowerCase()==='f'){ document.documentElement.requestFullscreen?.(); }
+});
+function refreshSlides(){ slides = [...deck.querySelectorAll('.slide')]; show(idx); }
+window.refreshSlides = refreshSlides;
+
+// —— 轻量 Canvas 水波背景（低成本，缓慢漂移）——
+const wc = document.getElementById('water');
+const wx = wc.getContext('2d');
+let W, H;
+function resize(){ W = wc.width = innerWidth; H = wc.height = innerHeight; }
+addEventListener('resize', resize); resize();
+const waves = [
+  {amp:26, len:0.0016, speed:0.00022, y:0.72, color:'rgba(50,173,230,0.10)'},
+  {amp:34, len:0.0011, speed:0.00015, y:0.82, color:'rgba(0,122,255,0.08)'},
+  {amp:20, len:0.0022, speed:0.00030, y:0.90, color:'rgba(48,213,200,0.10)'},
+];
+function drawWater(t){
+  wx.clearRect(0,0,W,H);
+  for(const wv of waves){
+    wx.beginPath();
+    wx.moveTo(0,H);
+    for(let x=0;x<=W;x+=8){
+      const y = H*wv.y + Math.sin(x*wv.len + t*wv.speed)*wv.amp;
+      wx.lineTo(x,y);
+    }
+    wx.lineTo(W,H); wx.closePath();
+    wx.fillStyle = wv.color; wx.fill();
+  }
+  requestAnimationFrame(drawWater);
+}
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduceMotion){ drawWater(0); } else { requestAnimationFrame(drawWater); }
+
+// —— 小人工厂：按表情生成一个角落小人 ——
+const MOUTHS = {
+  happy:  'M82 134 q18 18 36 0',
+  laugh:  'M78 130 q22 26 44 0',
+  think:  'M86 138 q14 6 28 0',
+  wow:    'M92 132 a10 10 0 1 0 .1 0',
+  fresh:  'M80 132 q20 20 40 0',
+  dirty:  'M82 144 q18 -14 36 0',
+  wave:   'M82 134 q18 16 36 0',
+};
+function makeMascot(expr='happy'){
+  const tpl = document.getElementById('mascot-tpl');
+  const node = tpl.content.firstElementChild.cloneNode(true);
+  node.setAttribute('data-expr', (expr==='dirty')?'dirty':'clean');
+  node.querySelector('.mouth').setAttribute('d', MOUTHS[expr]||MOUTHS.happy);
+  if(expr==='wow'){ node.querySelector('.left-eye').setAttribute('r','10');
+                    node.querySelector('.right-eye').setAttribute('r','10'); }
+  if(expr==='dirty'){
+    node.querySelector('.left-brow').setAttribute('d','M68 96 q10 6 20 0');
+    node.querySelector('.right-brow').setAttribute('d','M112 96 q10 6 20 0'); }
+  return node;
+}
+function placeMascot(slideEl, expr){
+  const m = makeMascot(expr); m.classList.add('corner'); slideEl.appendChild(m);
+}
+
+show(0);
+</script>
+</body>
+</html>
