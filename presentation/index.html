@@ -96,7 +96,87 @@ ul li::before{content:"";display:inline-block;width:9px;height:9px;border-radius
 </template>
 <main id="deck">
   <!-- 幻灯片 section 由后续任务插入到这里 -->
-  <section class="slide active"><div class="glass center"><h1>占位封面</h1></div></section>
+<section class="slide" data-mascot="float">
+  <div class="glass center" style="max-width:1000px">
+    <div class="subject-tag">环境工程 · 计算建模</div>
+    <h1>河流光催化净化<br>动态仿真</h1>
+    <p class="muted" style="margin-top:18px">基于微积分切片思想与指数衰减模型</p>
+    <p style="margin-top:10px;font-weight:600">让一条河的自我净化，变得可算、可调、可看。</p>
+  </div>
+</section>
+
+<section class="slide" data-mascot="dirty">
+  <div class="glass" style="max-width:980px">
+    <div class="subject-tag">为什么做这个项目</div>
+    <h2>痛点：河流污染怎么治？</h2>
+    <ul>
+      <li>河流污染治理是世界性难题，催化剂又贵。</li>
+      <li>传统投药靠经验——投多了浪费钱，投少了不达标。</li>
+      <li>缺一个能"先算后投"的定量工具：到底在哪投、投多少？</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="think">
+  <div class="glass" style="max-width:980px">
+    <div class="subject-tag">我们的答案</div>
+    <h2>一条会"自我净化"的数字河流</h2>
+    <ul>
+      <li>浏览器里的河流数字孪生：布置排污口和催化剂投放点。</li>
+      <li>实时算出污染物沿程浓度怎么衰减、最后能否达标。</li>
+      <li>还能自动帮你找"最省催化剂、又能达标"的投放方案。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="laugh">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">制作过程 · vibe coding</div>
+    <h2>vibe coding 是什么？</h2>
+    <ul>
+      <li>不再逐行手敲代码，而是用自然语言把想法讲给 AI，AI 落地成代码。</li>
+      <li>你专注"我想要什么、感觉对不对"，AI 负责"具体怎么写"。</li>
+      <li>快速试错、即时反馈、跟着感觉迭代——所以叫 <b>vibe</b> coding。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="happy">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">制作过程 · 真实历程</div>
+    <h2>我们怎么 vibe 出这个项目</h2>
+    <ul>
+      <li>从一句"我想模拟河流光催化净化"开始。</li>
+      <li>与 AI 结对：提需求 → 生成代码 → 跑起来看效果 → 再调整。</li>
+      <li>物理引擎一路迭代到 v4：物理-渲染分离、消除量纲混用、十条物理定律。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="wow">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">核心算法思想</div>
+    <h2>把整条河"切片"</h2>
+    <ul>
+      <li>一整条河又长又复杂，直接算根本算不动。</li>
+      <li>微积分的智慧：切成 <b>200 个小段</b>（微元），每段近似看作均匀。</li>
+      <li>逐段计算、再首尾相接累加 —— 这就是沿程积分。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="none">
+  <div class="glass center" style="max-width:1000px">
+    <div class="subject-tag">学科知识 · 高等数学</div>
+    <h2>这就是定积分的微元法</h2>
+    <div class="bignum">∫</div>
+    <ul style="text-align:left;display:inline-flex">
+      <li>分割 → 近似 → 求和 → 取极限。</li>
+      <li>把连续的河流问题，离散成一块块可计算的小段。</li>
+      <li>切得越细，结果越接近真实——程序用 200 段做平衡。</li>
+    </ul>
+  </div>
+</section>
 </main>
 <div id="progress"></div>
 <div id="pageno">1 / 1</div>
@@ -176,6 +256,18 @@ function makeMascot(expr='happy'){
 function placeMascot(slideEl, expr){
   const m = makeMascot(expr); m.classList.add('corner'); slideEl.appendChild(m);
 }
+
+// —— 根据每页 data-mascot 自动放置角落小人 ——
+function hydrateMascots(){
+  slides.forEach(s=>{
+    if(s.querySelector('.mascot')) return;       // 已有则跳过
+    const expr = s.getAttribute('data-mascot');
+    if(expr && expr!=='none'){
+      placeMascot(s, expr==='float'?'wave':expr);
+    }
+  });
+}
+hydrateMascots();
 
 show(0);
 </script>
