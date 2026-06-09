@@ -177,6 +177,110 @@ ul li::before{content:"";display:inline-block;width:9px;height:9px;border-radius
     </ul>
   </div>
 </section>
+
+<section class="slide" data-mascot="fresh">
+  <div class="glass center" style="max-width:1000px">
+    <div class="subject-tag">核心算法 · 指数衰减模型</div>
+    <h2>污染物按比例越变越少</h2>
+    <div class="formula">C(t) = C₀ · e<sup style="font-size:.5em">−k·t</sup></div>
+    <ul style="text-align:left;display:inline-flex">
+      <li>C₀ 是初始浓度，t 是停留时间，k 是降解速率常数。</li>
+      <li>k 越大、河水停留越久，净化得越彻底。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="none">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">学科知识 · 化学动力学</div>
+    <h2>一级反应与半衰期</h2>
+    <ul>
+      <li>一级反应：反应速率正比于当前浓度——浓度越高，降得越快。</li>
+      <li>半衰期：浓度减半所需时间是固定的，和指数衰减一一对应。</li>
+      <li>程序里 k = 催化剂活性 × 投药比 × 有效光强，没有"魔法数字"。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="dirty">
+  <div class="glass center" style="max-width:1000px">
+    <div class="subject-tag">核心算法 · 朗伯-比尔定律</div>
+    <h2>光，进不去浑水的底</h2>
+    <div class="formula">I = I₀ · e<sup style="font-size:.5em">−α·d</sup></div>
+    <ul style="text-align:left;display:inline-flex">
+      <li>光进入水里会被吸收，水越深 d，剩下的光 I 越弱。</li>
+      <li>水越浑（NTU 越高），衰减系数 α 越大，光催化越难发生。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="none">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">学科知识 · 物理光学 + 流体力学</div>
+    <h2>光 + 水流，共同决定净化能力</h2>
+    <ul>
+      <li>物理光学：朗伯-比尔定律解释了"浑水底下几乎没有光"。</li>
+      <li>流体力学：连续性方程 <b>Q = v · A</b>，河道越窄流速越快、停留越短。</li>
+      <li>光强不足或停留太短的河段，催化剂效率都会大打折扣。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="wow">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">核心算法 · 自动优化</div>
+    <h2>一键找到最优投药方案</h2>
+    <ul>
+      <li>投药越多越干净，但成本也越高——到底怎么权衡？</li>
+      <li>用<b>贪心搜索</b>快速逼近，再用 <b>Nelder-Mead</b> 局部精修。</li>
+      <li>自动构建帕累托前沿，给出"最少投药点 × 恰好达标"的方案。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="none">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">学科知识 · 运筹学 / 最优化</div>
+    <h2>多目标优化与帕累托最优</h2>
+    <ul>
+      <li>两个目标互相打架（少投药 vs 高净化），没有唯一最优解。</li>
+      <li>帕累托前沿：上面每个点都"想更省就得牺牲效果，反之亦然"。</li>
+      <li>贪心负责快、Nelder-Mead 负责准，组合起来又快又好。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" data-mascot="fresh">
+  <div class="glass" style="max-width:1000px">
+    <div class="subject-tag">达标判定 · 国家标准</div>
+    <h2>GB3838-2002 六级水质分类</h2>
+    <ul>
+      <li>对照《地表水环境质量标准》，实时判定每段属 I 类到劣 V 类。</li>
+      <li>界面用红 / 黄 / 绿信号灯直观提示水质好坏。</li>
+      <li>残留浓度低于 10% → 达到 I 类地表水标准。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide" id="slide-demo" data-mascot="none">
+  <div class="glass center" style="max-width:1100px">
+    <div class="subject-tag">现场演示</div>
+    <h2>现在，看看真实的程序</h2>
+    <p class="muted">（截图将在后续步骤插入此处）</p>
+  </div>
+</section>
+
+<section class="slide" data-mascot="wave">
+  <div class="glass center" style="max-width:1000px">
+    <div class="subject-tag">总结 · 致谢</div>
+    <h2>我们做到了什么</h2>
+    <ul style="text-align:left;display:inline-flex">
+      <li>用 vibe coding，把高数、化学、物理、运筹学缝进了一条"会自我净化的数字河流"。</li>
+      <li>收获：跨学科建模能力 + 与 AI 协作开发的真实经验。</li>
+      <li>感谢老师与同学们的聆听！</li>
+    </ul>
+  </div>
+</section>
 </main>
 <div id="progress"></div>
 <div id="pageno">1 / 1</div>
