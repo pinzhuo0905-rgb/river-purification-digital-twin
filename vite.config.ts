@@ -7,6 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    host: true, // 监听所有网络接口，允许局域网访问
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
