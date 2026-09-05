@@ -168,8 +168,8 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 * **张之御 (Zhiyu Zhang / John Zhang)** ([@RavenZh-John](https://github.com/RavenZh-John))
   * 核心数理模型构建、微积分切片算法推导、流体力学动力学与学术演示设计
-* **项目合作开发者 (Co-Author)**
-  * 全栈工程实现、仿真计算引擎集成、液态玻璃交互控制台与开源发布
+* **Pinzhuo Liu (刘品卓)** ([@pinzhuo0905-rgb](https://github.com/pinzhuo0905-rgb))
+  * 全栈工程架构、数值仿真计算引擎集成、液态玻璃交互控制台与开源系统发布
 
 ---
 
