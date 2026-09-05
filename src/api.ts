@@ -16,6 +16,9 @@ const WS_BASE = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${wi
 export interface RiverSegmentDTO {
   id: number;
   velocity: number;
+  /** 相对上一段的偏转角 (度)，新前端字段 */
+  angle?: number;
+  /** 兼容后端/旧场景字段，等价于 angle */
   directionAngle: number;
   length: number;
   depth: number;

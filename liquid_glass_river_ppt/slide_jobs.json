@@ -1,0 +1,902 @@
+{
+  "run_status": "slides_recorded",
+  "deck_name": "liquid_glass_river_ppt",
+  "selected_backend": "built-in image tool",
+  "sample_generation_method": {
+    "backend_used": "built-in image tool",
+    "tool_name": "image_gen",
+    "mode": "generate",
+    "prompt_source": "manual approved sample prompt for Slide 10 光照与浊度",
+    "size": "16:9 landscape, built-in default",
+    "quality": "built-in default",
+    "approved_sample_path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+    "input_context_preparation": "local required images inspected with view_image before built-in generation; approved sample slide inspected with view_image",
+    "handoff_rule": "Use this same built-in image generation tool and generate mode; return a blocker if unavailable."
+  },
+  "max_concurrent_slides": 6,
+  "slides": [
+    {
+      "slide_id": "slide_01",
+      "number": 1,
+      "title": "河流光催化净化动态仿真程序",
+      "job": "prompts/slide_01.json",
+      "out": "origin_image/slide_01.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf8b-0d64-7823-8e10-af9e6404e887",
+        "agent_nickname": "Ramanujan",
+        "prompt": "prompts/slide_01.json",
+        "prompt_sha256": "01355344a708ffdce086d09425d5674563f03e0faa6520886fe0f47d8b72a994",
+        "dispatched_at": "2026-06-10T03:22:50Z"
+      },
+      "result": {
+        "agent_id": "019eaf8b-0d64-7823-8e10-af9e6404e887",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf8b-0d64-7823-8e10-af9e6404e887/ig_0426ec988b2e42e9016a28d7e05b4c8191927a30eb4638e001.png",
+        "selected_source_sha256": "9afc8501d94100efe3d218e3c5e5682d039d59bbb2b5ee4ed81d6817a19a9e72",
+        "final_image": "origin_image/slide_01.png",
+        "final_image_sha256": "9afc8501d94100efe3d218e3c5e5682d039d59bbb2b5ee4ed81d6817a19a9e72",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "标题和三组关键词清晰可读，整体匹配已批准样张的 Apple Liquid Glass 水域数字孪生风格。",
+        "recorded_at": "2026-06-10T03:23:19Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_02",
+      "number": 2,
+      "title": "01 做项目的原因",
+      "job": "prompts/slide_02.json",
+      "out": "origin_image/slide_02.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf8b-7266-77f0-aee3-446a9951245f",
+        "agent_nickname": "Hegel",
+        "prompt": "prompts/slide_02.json",
+        "prompt_sha256": "0096a3446378f6d27b3a13a0f2485b2600ad731a74722ad2d858555b60061f34",
+        "dispatched_at": "2026-06-10T03:22:50Z"
+      },
+      "result": {
+        "agent_id": "019eaf8b-7266-77f0-aee3-446a9951245f",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf8b-7266-77f0-aee3-446a9951245f/ig_00787c5dd4adedcc016a28d7fc7b5081989bf070d402b90c6b.png",
+        "selected_source_sha256": "0eba0b207a328df4ae1c754518cf7d3ee671aa23a5eec8b4270906e8bc6fa1b3",
+        "final_image": "origin_image/slide_02.png",
+        "final_image_sha256": "0eba0b207a328df4ae1c754518cf7d3ee671aa23a5eec8b4270906e8bc6fa1b3",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题与要点清晰可读，整体符合 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T03:23:19Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_03",
+      "number": 3,
+      "title": "为什么做这个项目：河流治理不是凭感觉就够了",
+      "job": "prompts/slide_03.json",
+      "out": "origin_image/slide_03.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf8b-d230-7ca1-8a31-df51cbb97b72",
+        "agent_nickname": "Cicero",
+        "prompt": "prompts/slide_03.json",
+        "prompt_sha256": "764ef11f352be6ee3f0648500f9dfc50ae750e1251edeb8eec33ef0e9e04e67f",
+        "dispatched_at": "2026-06-10T03:22:50Z"
+      },
+      "result": {
+        "agent_id": "019eaf8b-d230-7ca1-8a31-df51cbb97b72",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf8b-d230-7ca1-8a31-df51cbb97b72/ig_02b5dd6bc9747469016a28d814932c8191ab05227322b90f19.png",
+        "selected_source_sha256": "203a53bedccf74f9f1cb1e373e2a5883146516b18fb9e6b32603eb17072ae024",
+        "final_image": "origin_image/slide_03.png",
+        "final_image_sha256": "203a53bedccf74f9f1cb1e373e2a5883146516b18fb9e6b32603eb17072ae024",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题和要点清晰可读，浅色 Apple Liquid Glass 玻璃面板、蓝绿水域 HUD 与已批准样张风格匹配。",
+        "recorded_at": "2026-06-10T03:24:21Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_04",
+      "number": 4,
+      "title": "我们的答案：模拟 + 优化 + 可视化",
+      "job": "prompts/slide_04.json",
+      "out": "origin_image/slide_04.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf8c-614c-7881-9bfd-209e70246664",
+        "agent_nickname": "Halley",
+        "prompt": "prompts/slide_04.json",
+        "prompt_sha256": "c6c456436d7830844aabdf32fb5dbbf97c042b91a843f628f1b19eb4505028bd",
+        "dispatched_at": "2026-06-10T03:22:51Z"
+      },
+      "result": {
+        "agent_id": "019eaf8c-614c-7881-9bfd-209e70246664",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf8c-614c-7881-9bfd-209e70246664/ig_02462dfb57dcb448016a28d83986bc8191af10b12fefe27c4c.png",
+        "selected_source_sha256": "d552c1647b2328679b6679f0912cbdac8ac03e2b8d0e7eb7ee45be8aba07476b",
+        "final_image": "origin_image/slide_04.png",
+        "final_image_sha256": "d552c1647b2328679b6679f0912cbdac8ac03e2b8d0e7eb7ee45be8aba07476b",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "主要标题和三层流程文字清晰可读，整体匹配 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T03:24:21Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_05",
+      "number": 5,
+      "title": "项目全景：从河道到决策控制台",
+      "job": "prompts/slide_05.json",
+      "out": "origin_image/slide_05.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        },
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/river.png",
+          "role": "strict input asset and main product screenshot",
+          "fidelity": "preserve UI content, Chinese labels, proportions, and screenshot details; do not redraw or replace the interface"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf8c-b657-76b0-a20f-67f574be4747",
+        "agent_nickname": "Plato",
+        "prompt": "prompts/slide_05.json",
+        "prompt_sha256": "c2b52c982db72330d86b17b5027d00d27eff412bd5f7d670d0a209f7a1d07d00",
+        "dispatched_at": "2026-06-10T03:22:51Z"
+      },
+      "result": {
+        "agent_id": "019eaf8c-b657-76b0-a20f-67f574be4747",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf8c-b657-76b0-a20f-67f574be4747/ig_056fe65cf27b5679016a28d862dcbc81919fa2df95d7ac3631.png",
+        "selected_source_sha256": "b9c0211e09964924c32d343d1d5630fadfdb676802aa84a77f6cbcf108c4ab02",
+        "final_image": "origin_image/slide_05.png",
+        "final_image_sha256": "b9c0211e09964924c32d343d1d5630fadfdb676802aa84a77f6cbcf108c4ab02",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "文字整体清晰、Apple Liquid Glass 风格匹配，已包含并保留河流观察窗截图作为中心证据图。",
+        "recorded_at": "2026-06-10T03:25:21Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_06",
+      "number": 6,
+      "title": "02 需要理解项目的背景知识",
+      "job": "prompts/slide_06.json",
+      "out": "origin_image/slide_06.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf8d-4173-7e73-b733-260c28afdeda",
+        "agent_nickname": "Hume",
+        "prompt": "prompts/slide_06.json",
+        "prompt_sha256": "025cb6e960cc6c2018a4b803f921b5c02f49b5f849dbbe3e01534f49c0e3bff5",
+        "dispatched_at": "2026-06-10T03:22:51Z"
+      },
+      "result": {
+        "agent_id": "019eaf8d-4173-7e73-b733-260c28afdeda",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf8d-4173-7e73-b733-260c28afdeda/ig_0cef6991505d5dd2016a28d8718540819ab5c82eb0fb87902c.png",
+        "selected_source_sha256": "d64f2b2aa540b420b6bd69a773de9bfe341411a8a4cf9b4db38173b7880e7753",
+        "final_image": "origin_image/slide_06.png",
+        "final_image_sha256": "d64f2b2aa540b420b6bd69a773de9bfe341411a8a4cf9b4db38173b7880e7753",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、学科节点和三条要点整体清晰可读，视觉风格与已批准样张的 Apple Liquid Glass 蓝绿水域科技感匹配。",
+        "recorded_at": "2026-06-10T03:25:24Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_07",
+      "number": 7,
+      "title": "背景知识地图：这不是单一学科问题",
+      "job": "prompts/slide_07.json",
+      "out": "origin_image/slide_07.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf90-e08a-7ed3-b04c-85b238adacc4",
+        "agent_nickname": "Volta",
+        "prompt": "prompts/slide_07.json",
+        "prompt_sha256": "8ae089a5d5952de865c2c65a4d2c5430cb002c02c41cd2a0a5ca4064a4eda281",
+        "dispatched_at": "2026-06-10T03:29:33Z"
+      },
+      "result": {
+        "agent_id": "019eaf90-e08a-7ed3-b04c-85b238adacc4",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf90-e08a-7ed3-b04c-85b238adacc4/ig_03518d35971b1d98016a28d9648ff881998915297327e2f535.png",
+        "selected_source_sha256": "ddadc0264729301a441edacaf50f15d07d0fe1ab17f6e3f3292837028c812127",
+        "final_image": "origin_image/slide_07.png",
+        "final_image_sha256": "ddadc0264729301a441edacaf50f15d07d0fe1ab17f6e3f3292837028c812127",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、五个学科节点和公式卡片整体清晰可读，视觉风格匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T06:51:48Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_08",
+      "number": 8,
+      "title": "微积分切片思想：把连续河流拆成可计算的小段",
+      "job": "prompts/slide_08.json",
+      "out": "origin_image/slide_08.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf91-589f-7121-8d13-d1cbbffe6c73",
+        "agent_nickname": "Tesla",
+        "prompt": "prompts/slide_08.json",
+        "prompt_sha256": "dac6197b88ce308a46854c84cc09fd18a253db744bf4a206eeee2c7389e815f3",
+        "dispatched_at": "2026-06-10T03:29:34Z"
+      },
+      "result": {
+        "agent_id": "019eaf91-589f-7121-8d13-d1cbbffe6c73",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf91-589f-7121-8d13-d1cbbffe6c73/ig_036ff39464713490016a28d97c34088191915953d87fee088a.png",
+        "selected_source_sha256": "1ac88737a7af46b56f54a9b9686d21b4d1bc3143dc9a9e17cb226405f2d9289a",
+        "final_image": "origin_image/slide_08.png",
+        "final_image_sha256": "1ac88737a7af46b56f54a9b9686d21b4d1bc3143dc9a9e17cb226405f2d9289a",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "标题、公式与三步说明清晰可读，Apple Liquid Glass 蓝绿水域数字孪生风格与已批准样张匹配。",
+        "recorded_at": "2026-06-10T03:29:56Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_09",
+      "number": 9,
+      "title": "指数衰减模型：净化效果如何被计算",
+      "job": "prompts/slide_09.json",
+      "out": "origin_image/slide_09.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf91-b712-7b50-b7a5-5850e463db76",
+        "agent_nickname": "Boole",
+        "prompt": "prompts/slide_09.json",
+        "prompt_sha256": "0c5562ced76ff65398068e9f1abf3d9382cd9d64d893ca83a23e92272f1d1e30",
+        "dispatched_at": "2026-06-10T03:29:34Z"
+      },
+      "result": {
+        "agent_id": "019eaf91-b712-7b50-b7a5-5850e463db76",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf91-b712-7b50-b7a5-5850e463db76/ig_0793a61f8c62de41016a28d99de41881919b6e4df2901d2e72.png",
+        "selected_source_sha256": "c7600ea4363bf20ea8e94956c5fdd0139b2db019c93df75fb9f2c8a8447525bb",
+        "final_image": "origin_image/slide_09.png",
+        "final_image_sha256": "c7600ea4363bf20ea8e94956c5fdd0139b2db019c93df75fb9f2c8a8447525bb",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、核心公式、要点与中点校正流程清晰可读，整体匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T06:51:48Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_10",
+      "number": 10,
+      "title": "光照与浊度：光为什么进不去浑水",
+      "job": "prompts/slide_10.json",
+      "out": "origin_image/slide_10.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "accepted",
+      "dispatch": null,
+      "result": {
+        "final_image": "origin_image/slide_10.png",
+        "accepted_sample": true
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_11",
+      "number": 11,
+      "title": "流速、河宽与停留时间",
+      "job": "prompts/slide_11.json",
+      "out": "origin_image/slide_11.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf92-111a-7f30-8c7e-53ee291b443a",
+        "agent_nickname": "Popper",
+        "prompt": "prompts/slide_11.json",
+        "prompt_sha256": "6a5216e71cb2e2dcd2284bcfbdb28d2c62df62b6ffaa6274a8dc3e1fd2cbc10a",
+        "dispatched_at": "2026-06-10T03:29:34Z"
+      },
+      "result": {
+        "agent_id": "019eaf92-111a-7f30-8c7e-53ee291b443a",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf92-111a-7f30-8c7e-53ee291b443a/ig_02a0db56a72cbb8b016a28d9ae6d748198ab63e34ac70c421c.png",
+        "selected_source_sha256": "ee94f087be2033e229e9f4278cca98642dc14c15f9d9bb8caf0e8969f78fdd5c",
+        "final_image": "origin_image/slide_11.png",
+        "final_image_sha256": "ee94f087be2033e229e9f4278cca98642dc14c15f9d9bb8caf0e8969f78fdd5c",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、公式和关键要点清晰可读，三段河道剖面与玻璃 HUD 风格匹配已批准的 Apple Liquid Glass 水域数字孪生视觉系统。",
+        "recorded_at": "2026-06-10T03:30:20Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_12",
+      "number": 12,
+      "title": "仿真引擎：从参数到河道浓度场",
+      "job": "prompts/slide_12.json",
+      "out": "origin_image/slide_12.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf92-97f8-7e33-8930-8a7ba1036cba",
+        "agent_nickname": "Averroes",
+        "prompt": "prompts/slide_12.json",
+        "prompt_sha256": "9d1f85ffd7b40c8ef4b7d6e26a432326185d4ab91c97515378c8bb8bae24ea9a",
+        "dispatched_at": "2026-06-10T03:29:34Z"
+      },
+      "result": {
+        "agent_id": "019eaf92-97f8-7e33-8930-8a7ba1036cba",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf92-97f8-7e33-8930-8a7ba1036cba/ig_03e43a2de9db35b1016a28da176ad081918fbb2d14079b573c.png",
+        "selected_source_sha256": "4e0d4acc9609ef59aa562945d28f1756c3acc114c6f993d426a0c5788ad8e94c",
+        "final_image": "origin_image/slide_12.png",
+        "final_image_sha256": "4e0d4acc9609ef59aa562945d28f1756c3acc114c6f993d426a0c5788ad8e94c",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、核心流程与 TypeScript v4 / Python v4 技术栈文字清晰可读，整体匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T06:56:58Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_13",
+      "number": 13,
+      "title": "自动投药优化：找到更少投药、更好净化的方案",
+      "job": "prompts/slide_13.json",
+      "out": "origin_image/slide_13.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eaf93-5fc8-7663-b832-9bec48ca577e",
+        "agent_nickname": "Leibniz",
+        "prompt": "prompts/slide_13.json",
+        "prompt_sha256": "b8aa66e5206a36da26b68fc7043a2d2867d77c7f3051c413009e84f736cd6739",
+        "dispatched_at": "2026-06-10T03:29:36Z"
+      },
+      "result": {
+        "agent_id": "019eaf93-5fc8-7663-b832-9bec48ca577e",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eaf93-5fc8-7663-b832-9bec48ca577e/ig_0f9e85521c9b6593016a28da11092c8191bbd530cdfb4a40ad.png",
+        "selected_source_sha256": "477244c25c0165727139b0e0a06b9144b846795880a93036dee2a645e3c5dd8b",
+        "final_image": "origin_image/slide_13.png",
+        "final_image_sha256": "477244c25c0165727139b0e0a06b9144b846795880a93036dee2a645e3c5dd8b",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、流程步骤和参数空间标签清晰可读，整体匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T06:51:48Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_14",
+      "number": 14,
+      "title": "优化结果长什么样：帕累托前沿",
+      "job": "prompts/slide_14.json",
+      "out": "origin_image/slide_14.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        },
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/chart.png",
+          "role": "strict input asset and main Pareto chart evidence screenshot",
+          "fidelity": "preserve chart content, axes, labels, colors, curves, UI, and data; do not redraw or replace"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb04e-b9ae-7961-ab2b-a5a5cfef78cb",
+        "agent_nickname": "Franklin",
+        "prompt": "prompts/slide_14.json",
+        "prompt_sha256": "33d4953ac0148e53d235782e4f0ddc3378ab7f0772a48b83bee89626ceb76fb9",
+        "dispatched_at": "2026-06-10T06:56:02Z"
+      },
+      "result": {
+        "agent_id": "019eb04e-b9ae-7961-ab2b-a5a5cfef78cb",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb04e-b9ae-7961-ab2b-a5a5cfef78cb/ig_0ed91a24307f8a5e016a290a1244dc8191aca0ae85b4205e49.png",
+        "selected_source_sha256": "8028e2a3d245ad47889bf911122406005409f321fa9004a539e62571ab603b31",
+        "final_image": "origin_image/slide_14.png",
+        "final_image_sha256": "8028e2a3d245ad47889bf911122406005409f321fa9004a539e62571ab603b31",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题和解释标签清晰可读，整体匹配 Apple Liquid Glass 蓝绿水域数字孪生风格，并已将指定图表截图作为中央证据图纳入画面。",
+        "recorded_at": "2026-06-10T06:57:28Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_15",
+      "number": 15,
+      "title": "水质达标判定：从看起来清到指标合格",
+      "job": "prompts/slide_15.json",
+      "out": "origin_image/slide_15.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        },
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/standard.png",
+          "role": "strict input asset and water quality standard evidence screenshot",
+          "fidelity": "preserve water quality class, labels, values, UI content, colors, and screenshot details; do not redraw or replace"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb04f-2d33-7a00-83af-a2831188857c",
+        "agent_nickname": "Fermat",
+        "prompt": "prompts/slide_15.json",
+        "prompt_sha256": "8af2b9a2fb1001ef1ab0f2fe9aca11080c2ad60e5062d3ebaa6964f76c75d8ff",
+        "dispatched_at": "2026-06-10T06:56:02Z"
+      },
+      "result": {
+        "agent_id": "019eb04f-2d33-7a00-83af-a2831188857c",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb04f-2d33-7a00-83af-a2831188857c/ig_0f7467719c58a92d016a290a40aee08191a2afcbde79ba1c99.png",
+        "selected_source_sha256": "a3f92b57e40614b4407aeb95198bd73b5145e52a03fe87389e702a6652678252",
+        "final_image": "origin_image/slide_15.png",
+        "final_image_sha256": "a3f92b57e40614b4407aeb95198bd73b5145e52a03fe87389e702a6652678252",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、关键说明和六级水质阶梯清晰可读，Apple Liquid Glass 风格与样张匹配，并已显著嵌入水质达标判定截图。",
+        "recorded_at": "2026-06-10T06:58:06Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_16",
+      "number": 16,
+      "title": "技术实现：React 前端 + FastAPI 后端",
+      "job": "prompts/slide_16.json",
+      "out": "origin_image/slide_16.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb04f-864c-7271-a1f4-0fd64f756b44",
+        "agent_nickname": "Ohm",
+        "prompt": "prompts/slide_16.json",
+        "prompt_sha256": "2b335b434f2eaf59abdd4620a900c8fc21d0a944d3fed96b3097b7bf587664f4",
+        "dispatched_at": "2026-06-10T06:56:03Z"
+      },
+      "result": {
+        "agent_id": "019eb04f-864c-7271-a1f4-0fd64f756b44",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb04f-864c-7271-a1f4-0fd64f756b44/ig_00d99446d513729e016a290a433f188191968bdc58ff9a6832.png",
+        "selected_source_sha256": "bb42283e865836c4553b20d654ed7b329bf224972f8939c2065991d26f081867",
+        "final_image": "origin_image/slide_16.png",
+        "final_image_sha256": "bb42283e865836c4553b20d654ed7b329bf224972f8939c2065991d26f081867",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、关键技术栈与 API 数据流文字清晰可读，整体匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T06:58:06Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_17",
+      "number": 17,
+      "title": "03 Vibe Coding 介绍",
+      "job": "prompts/slide_17.json",
+      "out": "origin_image/slide_17.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb050-145d-7791-a11c-29a368f0fd55",
+        "agent_nickname": "Descartes",
+        "prompt": "prompts/slide_17.json",
+        "prompt_sha256": "310755629c6ca78ad6f7f1adba7da7acbf0609475882420ac78ebf3bc4755745",
+        "dispatched_at": "2026-06-10T06:56:04Z"
+      },
+      "result": {
+        "agent_id": "019eb050-145d-7791-a11c-29a368f0fd55",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb050-145d-7791-a11c-29a368f0fd55/ig_02f98c36b11aa886016a290a5ff52c81918da819f4a5a8f8b3.png",
+        "selected_source_sha256": "ba89ecdd38fabe5a958fd24abc28e4ac9a25283868fad066e332257a1da02b86",
+        "final_image": "origin_image/slide_17.png",
+        "final_image_sha256": "ba89ecdd38fabe5a958fd24abc28e4ac9a25283868fad066e332257a1da02b86",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题和三条核心要点清晰可读，整体匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T06:58:07Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_18",
+      "number": 18,
+      "title": "Vibe Coding 是什么",
+      "job": "prompts/slide_18.json",
+      "out": "origin_image/slide_18.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb050-6f7f-7443-bb9c-4f6604e1442c",
+        "agent_nickname": "Harvey",
+        "prompt": "prompts/slide_18.json",
+        "prompt_sha256": "8d83de0b3ee7a5a3d6dff5c6fbd73b29282e262f63328f6313c608ede421e2e0",
+        "dispatched_at": "2026-06-10T06:56:04Z"
+      },
+      "result": {
+        "agent_id": "019eb050-6f7f-7443-bb9c-4f6604e1442c",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb050-6f7f-7443-bb9c-4f6604e1442c/ig_04090458ece1510f016a290a6e049c819192b4d0015396c73c.png",
+        "selected_source_sha256": "fd83570264ed0c3ecba31cf873e1d164ec365b26b165c2157e4907dee959f7db",
+        "final_image": "origin_image/slide_18.png",
+        "final_image_sha256": "fd83570264ed0c3ecba31cf873e1d164ec365b26b165c2157e4907dee959f7db",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、左右角色对照和反馈循环文字整体清晰可读，Apple Liquid Glass 蓝绿水域数字孪生风格与已批准样张匹配。",
+        "recorded_at": "2026-06-10T07:22:49Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_19",
+      "number": 19,
+      "title": "我们如何 Vibe 出这个项目",
+      "job": "prompts/slide_19.json",
+      "out": "origin_image/slide_19.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        },
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/dosing.png",
+          "role": "strict input asset and final interface evidence screenshot",
+          "fidelity": "preserve UI content, labels, layout, and screenshot details; do not redraw or replace"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb055-5db3-7021-9b39-c0250c497f56",
+        "agent_nickname": "Euclid",
+        "prompt": "prompts/slide_19.json",
+        "prompt_sha256": "19fa87f6184d4c57b5da52b3910f5bffca1af76183a3b757ba6946dcc4fa0a71",
+        "dispatched_at": "2026-06-10T07:02:31Z"
+      },
+      "result": {
+        "agent_id": "019eb055-5db3-7021-9b39-c0250c497f56",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb055-5db3-7021-9b39-c0250c497f56/ig_0bb12a9b8b1c8f54016a29102d30c881918098571e5e71f0f9.png",
+        "selected_source_sha256": "98fb35bf68a130a6d48d75a84088cdcc1d147482793b02bbeb1b656e06b983c4",
+        "final_image": "origin_image/slide_19.png",
+        "final_image_sha256": "98fb35bf68a130a6d48d75a84088cdcc1d147482793b02bbeb1b656e06b983c4",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、时间线与右侧要点清晰可读，整体匹配 Apple Liquid Glass 蓝绿水域数字孪生风格，并已将投药配置截图作为底部证据图纳入画面。",
+        "recorded_at": "2026-06-10T07:22:51Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_20",
+      "number": 20,
+      "title": "04 项目总结",
+      "job": "prompts/slide_20.json",
+      "out": "origin_image/slide_20.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb055-c548-76e2-84fa-b6745c756dfd",
+        "agent_nickname": "Ampere",
+        "prompt": "prompts/slide_20.json",
+        "prompt_sha256": "4b40596b326da3ae0984f28b0c48f8c430f79649117c2897f4037d812b0954da",
+        "dispatched_at": "2026-06-10T07:02:31Z"
+      },
+      "result": {
+        "agent_id": "019eb055-c548-76e2-84fa-b6745c756dfd",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb055-c548-76e2-84fa-b6745c756dfd/ig_06d2d8a317223f18016a290bcc1af8819182c83eaa487dedac.png",
+        "selected_source_sha256": "2a534ce935757724bd6174e1e198e1a290c97258c20a4b24d8466eb70c028012",
+        "final_image": "origin_image/slide_20.png",
+        "final_image_sha256": "2a534ce935757724bd6174e1e198e1a290c97258c20a4b24d8466eb70c028012",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题与四个关键词胶囊清晰可读，整体匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T07:22:51Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_21",
+      "number": 21,
+      "title": "项目价值与局限",
+      "job": "prompts/slide_21.json",
+      "out": "origin_image/slide_21.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb056-2b1b-7fb3-9b72-a031fb713925",
+        "agent_nickname": "Banach",
+        "prompt": "prompts/slide_21.json",
+        "prompt_sha256": "fa9bc4416c850ae09647f74657f97e5570044b1f882d4a2afdf3c5365bd2d04a",
+        "dispatched_at": "2026-06-10T07:02:31Z"
+      },
+      "result": {
+        "agent_id": "019eb056-2b1b-7fb3-9b72-a031fb713925",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb056-2b1b-7fb3-9b72-a031fb713925/ig_08c5c90e46fa2a71016a291063abbc81918ddce59fbcb1ab96.png",
+        "selected_source_sha256": "0315249066740c3853e1b9be60ffa39f1c6d3a02959201259c912bccb5701b9c",
+        "final_image": "origin_image/slide_21.png",
+        "final_image_sha256": "0315249066740c3853e1b9be60ffa39f1c6d3a02959201259c912bccb5701b9c",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题、价值要点、局限清单与未来路线图清晰可读，整体匹配已批准样张的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T07:24:57Z"
+      },
+      "blocker": null
+    },
+    {
+      "slide_id": "slide_22",
+      "number": 22,
+      "title": "总结：让治理方案先在数字河流中跑一遍",
+      "job": "prompts/slide_22.json",
+      "out": "origin_image/slide_22.png",
+      "input_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "recorded",
+      "dispatch": {
+        "agent_id": "019eb056-9518-7043-964f-780477a7bca3",
+        "agent_nickname": "Gibbs",
+        "prompt": "prompts/slide_22.json",
+        "prompt_sha256": "78f21dc4d897e278b78cb34f5f13a5dcdb9735dba828befe6a7e0ab7b0a03b8b",
+        "dispatched_at": "2026-06-10T07:02:31Z"
+      },
+      "result": {
+        "agent_id": "019eb056-9518-7043-964f-780477a7bca3",
+        "backend_used": "built-in image tool",
+        "selected_source": "/Users/johnzhang/.codex/generated_images/019eb056-9518-7043-964f-780477a7bca3/ig_0f3563e003e634e5016a29107088788191aa8c9e302d21d6c9.png",
+        "selected_source_sha256": "dcf8255d05d45f0166842aa4230aa04941492ef90e429f80c537cb0536578a43",
+        "final_image": "origin_image/slide_22.png",
+        "final_image_sha256": "dcf8255d05d45f0166842aa4230aa04941492ef90e429f80c537cb0536578a43",
+        "expected_backend": "built-in image tool",
+        "expected_backend_labels": [
+          "built-in image tool",
+          "image_gen"
+        ],
+        "sample_generation_method_matched": true,
+        "qa_note": "中文标题与六条总结要点整体清晰可读，清澈河流、绿色达标光环和玻璃控制台符合已批准的 Apple Liquid Glass 蓝绿水域数字孪生风格。",
+        "recorded_at": "2026-06-10T07:23:41Z"
+      },
+      "blocker": null
+    }
+  ],
+  "updated_at": "2026-06-10T07:24:57Z"
+}

@@ -58,19 +58,19 @@ export interface DashboardProps {
 // ═══════════════════════════════════════════════════════════════════
 
 const CLASS_STYLES: Record<string, { bg: string; border: string; badge: string; label: string }> = {
-  'I':  { bg: 'bg-emerald-50',  border: 'border-emerald-400', badge: 'bg-emerald-200 text-emerald-700', label: 'I 类 — 源头/自然保护区' },
-  'II': { bg: 'bg-blue-50',     border: 'border-blue-400',    badge: 'bg-blue-200 text-blue-700',       label: 'II 类 — 饮用水源地' },
-  'III':{ bg: 'bg-yellow-50',   border: 'border-yellow-400',  badge: 'bg-yellow-200 text-yellow-700',   label: 'III 类 — 渔业/游泳区' },
-  'IV': { bg: 'bg-orange-50',   border: 'border-orange-400',  badge: 'bg-orange-200 text-orange-700',   label: 'IV 类 — 工业用水' },
-  'V':  { bg: 'bg-red-50',      border: 'border-red-400',     badge: 'bg-red-200 text-red-700',         label: 'V 类 — 农业用水' },
-  '劣V':{ bg: 'bg-red-100',     border: 'border-red-600',     badge: 'bg-red-300 text-red-800',         label: '劣V 类 — 丧失使用功能' },
+  'I':  { bg: 'bg-emerald-400/10', border: 'border-emerald-300/70', badge: 'bg-emerald-300/20 text-emerald-100', label: 'I 类 — 源头/自然保护区' },
+  'II': { bg: 'bg-sky-400/10',     border: 'border-sky-300/70',     badge: 'bg-sky-300/20 text-sky-100',       label: 'II 类 — 饮用水源地' },
+  'III':{ bg: 'bg-yellow-400/10',  border: 'border-yellow-300/70',  badge: 'bg-yellow-300/20 text-yellow-100', label: 'III 类 — 渔业/游泳区' },
+  'IV': { bg: 'bg-orange-400/10',  border: 'border-orange-300/70',  badge: 'bg-orange-300/20 text-orange-100', label: 'IV 类 — 工业用水' },
+  'V':  { bg: 'bg-red-400/10',     border: 'border-red-300/70',     badge: 'bg-red-300/20 text-red-100',       label: 'V 类 — 农业用水' },
+  '劣V':{ bg: 'bg-red-500/15',     border: 'border-red-400/80',     badge: 'bg-red-400/20 text-red-100',       label: '劣V 类 — 丧失使用功能' },
 };
 
 function WaterQualityBadge({ standard }: { standard?: SimulationResultV3['waterQualityStandard'] }) {
   if (!standard) {
     return (
-      <div className="px-4 py-3 bg-gray-100 rounded-xl border border-gray-200">
-        <p className="text-sm font-semibold text-gray-500">水质评估：等待数据...</p>
+      <div className="px-4 py-3 glass-panel">
+        <p className="text-sm font-semibold text-slate-400">水质评估：等待数据...</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ function WaterQualityBadge({ standard }: { standard?: SimulationResultV3['waterQ
   const isMet = standard.classIMet;
 
   return (
-    <div className={`relative px-4 py-3 rounded-xl border-2 backdrop-blur transition-all duration-500 ${cls.bg} ${cls.border}`}>
+    <div className={`relative px-4 py-3 rounded-xl border backdrop-blur transition-all duration-500 ${cls.bg} ${cls.border}`}>
       {isMet && (
         <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden">
           <div className="absolute inset-0 bg-emerald-400/10 animate-ping rounded-xl"
@@ -89,33 +89,34 @@ function WaterQualityBadge({ standard }: { standard?: SimulationResultV3['waterQ
         </div>
       )}
       <div className="flex items-center gap-3 relative z-10">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${cls.badge} ${isMet ? 'animate-pulse' : ''}`}
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ring-4 ring-white/10 shadow-[0_0_28px_rgba(45,212,191,0.28)] ${cls.badge} ${isMet ? 'animate-pulse' : ''}`}
           style={isMet ? { animationDuration: '2s' } : {}}>
           {wc ?? '?'}
         </div>
         <div className="flex-1">
-          <p className="text-sm font-bold text-gray-800">
-            {isMet ? '🎉 I 类地表水全面达标' : `📋 ${cls.label}`}
+          <p className="text-sm font-bold text-slate-100">
+            {isMet ? 'I 类地表水全面达标' : cls.label}
           </p>
-          <p className="text-xs text-gray-600 mt-0.5">
+          <p className="text-xs text-slate-300 mt-0.5">
             出水口残留污染物{' '}
-            <span className={`font-bold text-base ${isMet ? 'text-emerald-700' : 'text-gray-700'}`}>
+            <span className={`font-bold text-base ${isMet ? 'text-emerald-200' : 'text-slate-100'}`}>
               {residualPct}%
             </span>
           </p>
+          <p className="text-xs text-cyan-100 mt-0.5">综合 WQI {standard.wqi ?? '—'} / 100</p>
           {standard.distanceToStandard !== undefined && !isMet && (
-            <p className="text-xs text-gray-500 mt-0.5">
-              📏 预估达标 I 类距离：约 {(standard.distanceToStandard * 100).toFixed(0)}% 流程处
+            <p className="text-xs text-slate-400 mt-0.5">
+              预估达标 I 类距离：约 {(standard.distanceToStandard * 100).toFixed(0)}% 流程处
             </p>
           )}
         </div>
-        <div className="w-16 h-3 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+        <div className="w-16 h-3 bg-white/10 rounded-full overflow-hidden flex-shrink-0">
           <div
             className={`h-full rounded-full transition-all duration-700 ${isMet ? 'bg-emerald-500' : 'bg-blue-500'}`}
             style={{ width: `${Math.min(100, standard.residualRatio * 100 * 10)}%` }}
           />
         </div>
-        <span className="text-xs text-gray-500 w-14 flex-shrink-0">达标 ≤10%</span>
+        <span className="text-xs text-slate-400 w-14 flex-shrink-0">达标 ≤10%</span>
       </div>
     </div>
   );
@@ -138,8 +139,8 @@ function ParetoChart({ paretoFrontier, baselineConcentration, onSelectPoint }: P
       {
         label: '最优最终浓度',
         data: paretoFrontier?.map(p => p.finalConcentration) ?? [],
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderColor: 'rgb(34, 211, 238)',
+        backgroundColor: 'rgba(34, 211, 238, 0.12)',
         tension: 0.3,
         pointRadius: 5,
         pointBackgroundColor: paretoFrontier?.map(p => {
@@ -157,7 +158,7 @@ function ParetoChart({ paretoFrontier, baselineConcentration, onSelectPoint }: P
       ...(baselineConcentration !== undefined ? [{
         label: '无催化剂基线',
         data: Array(paretoFrontier?.length ?? 0).fill(baselineConcentration),
-        borderColor: 'rgb(156, 163, 175)',
+        borderColor: 'rgba(148, 163, 184, 0.75)',
         borderDash: [6, 4] as number[],
         borderWidth: 1.5,
         pointRadius: 0,
@@ -177,10 +178,11 @@ function ParetoChart({ paretoFrontier, baselineConcentration, onSelectPoint }: P
       }
     },
     plugins: {
-      legend: { position: 'top' as const, labels: { usePointStyle: true, font: { size: 11 } } },
+      legend: { position: 'top' as const, labels: { usePointStyle: true, color: 'rgb(203,213,225)', font: { size: 11 } } },
       title: {
         display: true,
         text: '帕累托前沿：投药次数 vs 最优浓度',
+        color: 'rgb(226,232,240)',
         font: { size: 13, weight: 'bold' as const },
       },
       tooltip: {
@@ -211,10 +213,13 @@ function ParetoChart({ paretoFrontier, baselineConcentration, onSelectPoint }: P
         min: 0,
         max: 1.05,
         title: { display: true, text: '最终浓度', color: 'rgb(59,130,246)' },
-        grid: { color: 'rgba(0,0,0,0.06)' },
+        ticks: { color: 'rgb(148,163,184)' },
+        grid: { color: 'rgba(148,163,184,0.14)' },
       },
       x: {
         title: { display: true, text: '投药次数 N' },
+        ticks: { color: 'rgb(148,163,184)' },
+        grid: { color: 'rgba(148,163,184,0.1)' },
       },
     },
   }), [paretoFrontier, onSelectPoint]);
@@ -298,8 +303,8 @@ export function Dashboard({
       {
         label: '污染物相对浓度',
         data: concData,
-        borderColor: 'rgb(239, 68, 68)',
-        backgroundColor: 'rgba(239, 68, 68, 0.08)',
+        borderColor: 'rgb(248, 113, 113)',
+        backgroundColor: 'rgba(248, 113, 113, 0.12)',
         tension: 0.4,
         pointRadius: 0,
         fill: true,
@@ -309,8 +314,8 @@ export function Dashboard({
       {
         label: '水体浊度 (NTU)',
         data: ntuData,
-        borderColor: 'rgb(251, 146, 60)',
-        backgroundColor: 'rgba(251, 146, 60, 0.06)',
+        borderColor: 'rgb(251, 191, 36)',
+        backgroundColor: 'rgba(251, 191, 36, 0.1)',
         tension: 0.4,
         pointRadius: 0,
         fill: true,
@@ -320,7 +325,7 @@ export function Dashboard({
       {
         label: '物理河宽 (px)',
         data: widthData,
-        borderColor: 'rgb(99, 102, 241)',
+        borderColor: 'rgb(45, 212, 191)',
         borderDash: [4, 4],
         borderWidth: 1.5,
         tension: 0.3,
@@ -337,10 +342,11 @@ export function Dashboard({
     interaction: { mode: 'index' as const, intersect: false },
     animation: { duration: 300 },
     plugins: {
-      legend: { position: 'top' as const, labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
+      legend: { position: 'top' as const, labels: { usePointStyle: true, padding: 16, color: 'rgb(203,213,225)', font: { size: 11 } } },
       title: {
         display: true,
         text: '沿程污染物浓度 · NTU · 河宽 三轴联动曲线',
+        color: 'rgb(226,232,240)',
         font: { size: 13, weight: 'bold' as const },
         padding: { bottom: 12 },
       },
@@ -361,47 +367,51 @@ export function Dashboard({
         position: 'left' as const,
         min: 0,
         max: 1.05,
-        title: { display: true, text: '相对浓度 (1=污染)', color: 'rgb(239,68,68)' },
-        grid: { color: 'rgba(0,0,0,0.06)' },
+        title: { display: true, text: '相对浓度 (1=污染)', color: 'rgb(248,113,113)' },
+        ticks: { color: 'rgb(148,163,184)' },
+        grid: { color: 'rgba(148,163,184,0.14)' },
       },
       y1: {
         type: 'linear' as const,
         position: 'right' as const,
         min: 0,
-        title: { display: true, text: 'NTU', color: 'rgb(251,146,60)' },
+        title: { display: true, text: 'NTU', color: 'rgb(251,191,36)' },
+        ticks: { color: 'rgb(148,163,184)' },
         grid: { drawOnChartArea: false },
       },
       y2: {
         type: 'linear' as const,
         position: 'right' as const,
         min: 0,
-        title: { display: true, text: '河宽 (px)', color: 'rgb(99,102,241)' },
+        title: { display: true, text: '河宽 (px)', color: 'rgb(45,212,191)' },
+        ticks: { color: 'rgb(148,163,184)' },
         grid: { drawOnChartArea: false },
         offset: true,
       },
       x: {
         title: { display: true, text: '流程进度' },
-        ticks: { callback: (_v: unknown, i: number) => (i % 10 === 0 ? concLabels[i] : '') },
+        ticks: { color: 'rgb(148,163,184)', callback: (_v: unknown, i: number) => (i % 10 === 0 ? concLabels[i] : '') },
+        grid: { color: 'rgba(148,163,184,0.1)' },
       },
     },
   }), [concLabels]);
 
   return (
-    <div className="bg-white rounded-xl shadow border border-gray-200 p-4 flex flex-col gap-4">
+    <div className="glass-panel p-4 flex flex-col gap-4 text-slate-100">
       {/* ── 水质合规 ──────────────────────────────────── */}
       <WaterQualityBadge standard={waterQualityStandard} />
 
       {/* ── 自动优化控制 ──────────────────────────────────── */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+      <div className="flex items-center gap-3 px-4 py-3 bg-cyan-400/10 rounded-xl border border-cyan-300/20">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-blue-700">最大投药次数：</span>
+          <span className="text-sm font-semibold text-cyan-100">最大投药次数：</span>
           <input
             type="number"
             min={0}
             max={20}
             value={maxDosingPoints ?? 5}
             onChange={e => onMaxDosingPointsChange?.(Number(e.target.value))}
-            className="w-16 px-2 py-1 border border-blue-300 rounded-lg text-center text-sm font-mono"
+            className="w-16 px-2 py-1 border border-cyan-300/30 rounded-lg text-center text-sm font-mono bg-slate-950/50 text-white"
             disabled={isOptimizing}
           />
         </div>
@@ -419,12 +429,12 @@ export function Dashboard({
       </div>
 
       {/* ── 目标水质选择 + 反算投药量 ──────────────────────── */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200">
-        <span className="text-sm font-semibold text-emerald-700">目标水质：</span>
+      <div className="flex items-center gap-3 px-4 py-3 bg-emerald-400/10 rounded-xl border border-emerald-300/20">
+        <span className="text-sm font-semibold text-emerald-100">目标水质：</span>
         <select
           value={targetWaterClass ?? 'II'}
           onChange={e => onTargetWaterClassChange?.(e.target.value as WaterQualityClass)}
-          className="px-3 py-1.5 border border-emerald-300 rounded-lg text-sm font-mono bg-white"
+          className="px-3 py-1.5 border border-emerald-300/30 rounded-lg text-sm font-mono bg-slate-950/50 text-white"
         >
           <option value="I">I 类</option>
           <option value="II">II 类</option>
@@ -444,7 +454,7 @@ export function Dashboard({
           {isCalculatingDose ? '计算中...' : '计算所需投药量'}
         </button>
         {requiredDose !== null && requiredDose !== undefined && (
-          <span className="text-sm font-mono text-emerald-800">
+          <span className="text-sm font-mono text-emerald-100">
             需要剂量: <span className="font-bold text-base">{requiredDose.toFixed(1)}</span>
           </span>
         )}
@@ -535,21 +545,21 @@ export function Dashboard({
 
       {/* ── 段出口数据卡片 ────────────────────────────── */}
       <div className="flex gap-3 flex-wrap">
-        <div className="px-3 py-2 bg-blue-50 rounded-lg text-sm">
-          <span className="text-blue-500 font-medium">最佳投放坐标：</span>
-          <span className="font-bold text-blue-800">({optX.toFixed(0)}, {optY.toFixed(0)})</span>
+        <div className="px-3 py-2 bg-cyan-400/10 rounded-lg text-sm border border-cyan-300/20">
+          <span className="text-cyan-200 font-medium">最佳投放坐标：</span>
+          <span className="font-bold text-cyan-50">({optX.toFixed(0)}, {optY.toFixed(0)})</span>
         </div>
         {segLabels.map((label, i) => (
-          <div key={i} className="px-3 py-2 bg-gray-50 rounded-lg text-sm border border-gray-100">
-            <span className="text-gray-500">{label}：</span>
+          <div key={i} className="px-3 py-2 bg-white/5 rounded-lg text-sm border border-white/10">
+            <span className="text-slate-400">{label}：</span>
             <span
-              className={`font-bold ${
-                segValues[i] < 0.1 ? 'text-emerald-600' : segValues[i] < 0.3 ? 'text-blue-600' : segValues[i] < 0.6 ? 'text-yellow-600' : 'text-red-600'
+              className={`count-up font-bold ${
+                segValues[i] < 0.1 ? 'text-emerald-300' : segValues[i] < 0.3 ? 'text-cyan-300' : segValues[i] < 0.6 ? 'text-yellow-300' : 'text-red-300'
               }`}
             >
               {(segValues[i] * 100).toFixed(1)}%
             </span>
-            <span className="text-gray-400 ml-1">| NTU {segNtuValues[i]?.toFixed(1) ?? '—'}</span>
+            <span className="text-slate-500 ml-1">| NTU {segNtuValues[i]?.toFixed(1) ?? '—'}</span>
             {segNtuValues[i] !== undefined && segNtuValues[i] <= 15 && (
               <span className="ml-1 text-emerald-500 text-xs">✓清澈</span>
             )}

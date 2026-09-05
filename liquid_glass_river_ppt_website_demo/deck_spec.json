@@ -1,0 +1,99 @@
+{
+  "deck": "liquid_glass_river_ppt_website_demo",
+  "slide_count": 23,
+  "source": "Original non-Vibe slides reused unchanged; Vibe section replaced by website demo section.",
+  "slides": [
+    {
+      "slide": 1,
+      "source": "original slide_01 with exact title and member overlay"
+    },
+    {
+      "slide": 2,
+      "source": "original slide_02 reused unchanged"
+    },
+    {
+      "slide": 3,
+      "source": "original slide_03 reused unchanged"
+    },
+    {
+      "slide": 4,
+      "source": "original slide_04 reused unchanged"
+    },
+    {
+      "slide": 5,
+      "source": "original slide_05 reused unchanged"
+    },
+    {
+      "slide": 6,
+      "source": "original slide_06 reused unchanged"
+    },
+    {
+      "slide": 7,
+      "source": "original slide_07 reused unchanged"
+    },
+    {
+      "slide": 8,
+      "source": "original slide_08 reused unchanged"
+    },
+    {
+      "slide": 9,
+      "source": "original slide_09 reused unchanged"
+    },
+    {
+      "slide": 10,
+      "source": "original slide_10 reused unchanged"
+    },
+    {
+      "slide": 11,
+      "source": "original slide_11 reused unchanged"
+    },
+    {
+      "slide": 12,
+      "source": "original slide_12 reused unchanged"
+    },
+    {
+      "slide": 13,
+      "source": "original slide_13 reused unchanged"
+    },
+    {
+      "slide": 14,
+      "source": "original slide_14 reused unchanged"
+    },
+    {
+      "slide": 15,
+      "source": "original slide_15 reused unchanged"
+    },
+    {
+      "slide": 16,
+      "source": "original slide_16 reused unchanged"
+    },
+    {
+      "slide": 17,
+      "source": "new generated website demo divider"
+    },
+    {
+      "slide": 18,
+      "source": "original slide_05 duplicated for website overview demo"
+    },
+    {
+      "slide": 19,
+      "source": "original slide_14 duplicated for optimization demo"
+    },
+    {
+      "slide": 20,
+      "source": "original slide_15 duplicated for standard demo"
+    },
+    {
+      "slide": 21,
+      "source": "original slide_20 reused unchanged"
+    },
+    {
+      "slide": 22,
+      "source": "original slide_21 reused unchanged"
+    },
+    {
+      "slide": 23,
+      "source": "original slide_22 reused unchanged"
+    }
+  ]
+}

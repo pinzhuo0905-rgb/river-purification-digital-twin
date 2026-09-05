@@ -32,13 +32,27 @@
 // ═══════════════════════════════════════════════════════════════
 
 /** 污染物种类 */
-export type PollutantType =
+export type BuiltInPollutantType =
   | 'organic_macromolecule'   // 大分子有机物
   | 'sediment_algae'          // 泥沙水藻
   | 'heavy_metal'             // 重金属离子
   | 'petroleum_hydrocarbon'   // 石油烃类
   | 'nutrient_runoff'         // 氮磷富营养化
   | 'microplastic';           // 微塑料
+
+export type PollutantType = BuiltInPollutantType | (string & {});
+
+/** 污染物配比：值为 0~1 的相对占比，内部会自动归一化 */
+export type PollutantMix = Partial<Record<string, number>>;
+
+/** 自定义污染物参数 */
+export interface CustomPollutantProfile {
+  id: string;
+  label: string;
+  ntuCoefficient: number;
+  naturalDecayBoost: number;
+  supportsSettling?: boolean;
+}
 
 /** 地形类型 */
 export type TerrainType = 'river' | 'lake';
@@ -91,8 +105,11 @@ export interface SimulationParamsV3 {
   gridHeight: number;
   lightIntensity: number;         // I₀ (0.1~3.0)
   baseNtu?: number;               // 基础浊度 (0~100)
+  totalRiverLengthM?: number;     // 河流总物理长度 (m)，默认 1000
   temperature?: number;           // 水温 (°C)，默认 25°C
   pollutantType?: PollutantType;
+  pollutantMix?: PollutantMix;    // 多污染物配比；未传时使用 pollutantType 100%
+  customPollutants?: Record<string, CustomPollutantProfile>;
   segments: RiverSegmentV3[];
   pollutantDischarges?: PollutantDischarge[];
   catalystPlacements?: CatalystPlacement[];
@@ -167,6 +184,366 @@ export interface SimulationResultV3 {
   };
 }
 
+/** 学术级预设场景 */
+export interface ScenarioPreset {
+  id: string;
+  name: string;
+  domain: string;
+  painPoint: string;
+  researchValue: string;
+  totalRiverLengthM: number;
+  lightIntensity: number;
+  baseNtu: number;
+  temperature: number;
+  pollutantType: PollutantType;
+  pollutantMix: PollutantMix;
+  segments: RiverSegmentV3[];
+  pollutantDischarges: PollutantDischarge[];
+  catalystPlacements: CatalystPlacement[];
+}
+
+export const POLLUTANT_LABELS: Record<BuiltInPollutantType, string> = {
+  organic_macromolecule: '大分子有机物',
+  sediment_algae: '泥沙水藻',
+  heavy_metal: '重金属离子',
+  petroleum_hydrocarbon: '石油烃类',
+  nutrient_runoff: '氮磷富营养化',
+  microplastic: '微塑料',
+};
+
+export function getPollutantLabel(
+  pollutantType: PollutantType,
+  customPollutants?: Record<string, CustomPollutantProfile>,
+): string {
+  return customPollutants?.[pollutantType]?.label
+    ?? POLLUTANT_LABELS[pollutantType as BuiltInPollutantType]
+    ?? pollutantType;
+}
+
+/** 覆盖环境工程、流体力学与灾害应急的内置科研预设库 */
+export const ACADEMIC_SCENARIO_PRESETS: ScenarioPreset[] = [
+  {
+    id: 'industrial-night-illegal-discharge',
+    name: '工业废水突发超标排放源追踪',
+    domain: '工业环境学',
+    painPoint: '上游化工厂在深夜无光照条件下突发偷排大分子有机污染物。',
+    researchValue: '展示缺乏光照且流速极快时污染物向下游扩散的最恶劣工况。',
+    totalRiverLengthM: 1800,
+    lightIntensity: 0.0,
+    baseNtu: 45,
+    temperature: 18,
+    pollutantType: 'organic_macromolecule',
+    pollutantMix: { organic_macromolecule: 1.0 },
+    segments: [
+      { id: 1, velocity: 4.8, angle: 0, directionAngle: 0, length: 0.28, depth: 0.9, width: 0.5 },
+      { id: 2, velocity: 5.6, angle: 12, directionAngle: 12, length: 0.24, depth: 0.8, width: 0.5 },
+      { id: 3, velocity: 4.9, angle: -16, directionAngle: -16, length: 0.24, depth: 1.0, width: 0.6 },
+      { id: 4, velocity: 4.2, angle: 8, directionAngle: 8, length: 0.24, depth: 1.1, width: 0.7 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.05, pollutantType: 'organic_macromolecule', mass: 1.0, dischargeType: 'burst' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 2, activity: 0.7, doseRatio: 1.2, effectiveAfterRatio: 0.45 },
+    ],
+  },
+  {
+    id: 'temperate-eutrophic-algal-bloom',
+    name: '温带高富营养化水体赤潮爆发模拟',
+    domain: '水生生态学',
+    painPoint: '夏季正午强光下水体泥沙水藻暴增，极高浊度造成底层光盲区。',
+    researchValue: '量化高 NTU 对朗伯-比尔光衰减与光催化净化效率的严重制约。',
+    totalRiverLengthM: 2600,
+    lightIntensity: 10.0,
+    baseNtu: 150,
+    temperature: 31,
+    pollutantType: 'sediment_algae',
+    pollutantMix: { sediment_algae: 0.8, organic_macromolecule: 0.2 },
+    segments: [
+      { id: 1, velocity: 0.22, angle: 0, directionAngle: 0, length: 0.25, depth: 2.6, width: 1.8 },
+      { id: 2, velocity: 0.16, angle: 5, directionAngle: 5, length: 0.30, depth: 3.1, width: 2.0 },
+      { id: 3, velocity: 0.11, angle: -4, directionAngle: -4, length: 0.25, depth: 3.4, width: 2.0, terrain: 'lake' },
+      { id: 4, velocity: 0.18, angle: 3, directionAngle: 3, length: 0.20, depth: 2.8, width: 1.7 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.0, pollutantType: 'sediment_algae', mass: 0.8, dischargeType: 'continuous' },
+      { segmentIndex: 1, positionRatio: 0.35, pollutantType: 'organic_macromolecule', mass: 0.2, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 1, activity: 0.9, doseRatio: 2.8, effectiveAfterRatio: 0.1 },
+      { segmentIndex: 2, activity: 1.1, doseRatio: 3.6, effectiveAfterRatio: 0.25 },
+    ],
+  },
+  {
+    id: 'urban-flood-compound-runoff',
+    name: '城市内涝与多源复合污染协同治理',
+    domain: '市政工程学',
+    painPoint: '暴雨径流将多种污染物冲刷入河，多个雨污混接口同时形成负荷脉冲。',
+    researchValue: '评估低光照、高流量、多点源复合污染下的协同投药策略。',
+    totalRiverLengthM: 3200,
+    lightIntensity: 1.0,
+    baseNtu: 85,
+    temperature: 22,
+    pollutantType: 'organic_macromolecule',
+    pollutantMix: { organic_macromolecule: 0.5, sediment_algae: 0.5 },
+    segments: [
+      { id: 1, velocity: 2.4, angle: 0, directionAngle: 0, length: 0.18, depth: 1.2, width: 1.0 },
+      { id: 2, velocity: 2.9, angle: -10, directionAngle: -10, length: 0.22, depth: 1.1, width: 1.1 },
+      { id: 3, velocity: 1.8, angle: 14, directionAngle: 14, length: 0.22, depth: 1.6, width: 1.4 },
+      { id: 4, velocity: 1.3, angle: -6, directionAngle: -6, length: 0.20, depth: 1.9, width: 1.6 },
+      { id: 5, velocity: 1.7, angle: 8, directionAngle: 8, length: 0.18, depth: 1.5, width: 1.3 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.1, pollutantType: 'organic_macromolecule', mass: 0.55, dischargeType: 'burst' },
+      { segmentIndex: 1, positionRatio: 0.4, pollutantType: 'sediment_algae', mass: 0.45, dischargeType: 'continuous' },
+      { segmentIndex: 3, positionRatio: 0.2, pollutantType: 'organic_macromolecule', mass: 0.35, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 1, activity: 0.8, doseRatio: 2.2, effectiveAfterRatio: 0.25 },
+      { segmentIndex: 3, activity: 1.0, doseRatio: 2.8, effectiveAfterRatio: 0.1 },
+    ],
+  },
+  {
+    id: 'estuary-oil-spill-emergency',
+    name: '河湖交汇区石油烃泄漏应急拦截',
+    domain: '灾害应急与流体力学',
+    painPoint: '交通事故导致石油烃进入入湖口，油膜在宽浅缓流区滞留并持续遮光。',
+    researchValue: '研究缓流扩散、湖泊段滞留时间与多级催化围控投放的耦合效果。',
+    totalRiverLengthM: 2400,
+    lightIntensity: 6.5,
+    baseNtu: 32,
+    temperature: 27,
+    pollutantType: 'petroleum_hydrocarbon',
+    pollutantMix: { petroleum_hydrocarbon: 0.7, organic_macromolecule: 0.3 },
+    segments: [
+      { id: 1, velocity: 1.4, angle: 0, directionAngle: 0, length: 0.22, depth: 1.3, width: 1.1 },
+      { id: 2, velocity: 0.65, angle: 6, directionAngle: 6, length: 0.24, depth: 1.8, width: 1.6 },
+      { id: 3, velocity: 0.18, angle: 0, directionAngle: 0, length: 0.34, depth: 2.4, width: 1.8, terrain: 'lake' },
+      { id: 4, velocity: 0.42, angle: -5, directionAngle: -5, length: 0.20, depth: 1.7, width: 1.5 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.15, pollutantType: 'petroleum_hydrocarbon', mass: 0.7, dischargeType: 'burst' },
+      { segmentIndex: 1, positionRatio: 0.45, pollutantType: 'organic_macromolecule', mass: 0.3, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 1, activity: 0.9, doseRatio: 2.4, effectiveAfterRatio: 0.2 },
+      { segmentIndex: 2, activity: 1.4, doseRatio: 4.0, effectiveAfterRatio: 0.05 },
+      { segmentIndex: 3, activity: 1.0, doseRatio: 2.6, effectiveAfterRatio: 0.15 },
+    ],
+  },
+  {
+    id: 'mining-flash-flood-metal-microplastic',
+    name: '矿区洪峰重金属-微塑料迁移风险评估',
+    domain: '地球化学与灾害应急',
+    painPoint: '山洪冲刷尾矿与固废堆场，低浊度隐性污染在长河段中高速迁移。',
+    researchValue: '对比高持久性重金属/微塑料在快速水动力条件下的低自净风险。',
+    totalRiverLengthM: 5200,
+    lightIntensity: 3.0,
+    baseNtu: 38,
+    temperature: 12,
+    pollutantType: 'heavy_metal',
+    pollutantMix: { heavy_metal: 0.7, microplastic: 0.3 },
+    segments: [
+      { id: 1, velocity: 3.8, angle: 0, directionAngle: 0, length: 0.16, depth: 0.8, width: 0.6 },
+      { id: 2, velocity: 4.5, angle: 18, directionAngle: 18, length: 0.18, depth: 0.7, width: 0.5 },
+      { id: 3, velocity: 3.2, angle: -22, directionAngle: -22, length: 0.20, depth: 1.0, width: 0.7 },
+      { id: 4, velocity: 2.1, angle: 9, directionAngle: 9, length: 0.24, depth: 1.5, width: 1.0 },
+      { id: 5, velocity: 1.4, angle: -5, directionAngle: -5, length: 0.22, depth: 1.8, width: 1.3 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.0, pollutantType: 'heavy_metal', mass: 0.7, dischargeType: 'burst' },
+      { segmentIndex: 1, positionRatio: 0.25, pollutantType: 'microplastic', mass: 0.3, dischargeType: 'burst' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 3, activity: 1.5, doseRatio: 3.5, effectiveAfterRatio: 0.35 },
+      { segmentIndex: 4, activity: 1.8, doseRatio: 4.5, effectiveAfterRatio: 0.1 },
+    ],
+  },
+  {
+    id: 'china-yangtze-three-gorges-canyon',
+    name: '长江三峡库区深槽峡谷型河段',
+    domain: '大型河流调度与水动力学',
+    painPoint: '库区深水、宽窄交替与回水效应使有机污染物停留时间明显拉长。',
+    researchValue: '对比峡谷窄深段与库湾宽深段在光衰减、停留时间和催化布点上的差异。',
+    totalRiverLengthM: 9000,
+    lightIntensity: 5.5,
+    baseNtu: 42,
+    temperature: 24,
+    pollutantType: 'organic_macromolecule',
+    pollutantMix: { organic_macromolecule: 0.45, nutrient_runoff: 0.35, sediment_algae: 0.2 },
+    segments: [
+      { id: 1, velocity: 1.9, angle: 0, directionAngle: 0, length: 0.16, depth: 7.5, width: 1.2 },
+      { id: 2, velocity: 1.3, angle: 18, directionAngle: 18, length: 0.17, depth: 12.0, width: 0.9 },
+      { id: 3, velocity: 0.55, angle: -12, directionAngle: -12, length: 0.22, depth: 18.0, width: 1.7, terrain: 'lake' },
+      { id: 4, velocity: 0.85, angle: 10, directionAngle: 10, length: 0.18, depth: 14.0, width: 1.5 },
+      { id: 5, velocity: 1.6, angle: -7, directionAngle: -7, length: 0.14, depth: 8.5, width: 1.1 },
+      { id: 6, velocity: 1.2, angle: 5, directionAngle: 5, length: 0.13, depth: 10.0, width: 1.4 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.2, pollutantType: 'organic_macromolecule', mass: 0.45, dischargeType: 'continuous' },
+      { segmentIndex: 2, positionRatio: 0.3, pollutantType: 'nutrient_runoff', mass: 0.35, dischargeType: 'continuous' },
+      { segmentIndex: 3, positionRatio: 0.55, pollutantType: 'sediment_algae', mass: 0.2, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 1, activity: 1.0, doseRatio: 2.4, effectiveAfterRatio: 0.25 },
+      { segmentIndex: 3, activity: 1.3, doseRatio: 3.2, effectiveAfterRatio: 0.15 },
+      { segmentIndex: 5, activity: 0.9, doseRatio: 2.0, effectiveAfterRatio: 0.2 },
+    ],
+  },
+  {
+    id: 'china-yellow-river-loess-turbid',
+    name: '黄河中游高含沙游荡型河段',
+    domain: '泥沙动力学与流域水环境',
+    painPoint: '黄土高原来沙造成极高 NTU，宽浅摆动河道让光催化反应受浊度强烈抑制。',
+    researchValue: '用于研究高泥沙负荷、浅水强再悬浮和宽浅河槽对净化效率的影响。',
+    totalRiverLengthM: 11000,
+    lightIntensity: 7.2,
+    baseNtu: 180,
+    temperature: 26,
+    pollutantType: 'sediment_algae',
+    pollutantMix: { sediment_algae: 0.75, nutrient_runoff: 0.15, organic_macromolecule: 0.1 },
+    segments: [
+      { id: 1, velocity: 2.6, angle: 0, directionAngle: 0, length: 0.13, depth: 1.1, width: 1.8 },
+      { id: 2, velocity: 3.1, angle: -25, directionAngle: -25, length: 0.16, depth: 0.9, width: 2.0 },
+      { id: 3, velocity: 2.4, angle: 30, directionAngle: 30, length: 0.16, depth: 1.2, width: 1.7 },
+      { id: 4, velocity: 1.7, angle: -18, directionAngle: -18, length: 0.20, depth: 1.6, width: 2.0 },
+      { id: 5, velocity: 2.2, angle: 22, directionAngle: 22, length: 0.18, depth: 1.3, width: 1.9 },
+      { id: 6, velocity: 1.5, angle: -10, directionAngle: -10, length: 0.17, depth: 1.8, width: 1.6 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.0, pollutantType: 'sediment_algae', mass: 0.75, dischargeType: 'continuous' },
+      { segmentIndex: 2, positionRatio: 0.4, pollutantType: 'nutrient_runoff', mass: 0.15, dischargeType: 'continuous' },
+      { segmentIndex: 4, positionRatio: 0.35, pollutantType: 'organic_macromolecule', mass: 0.1, dischargeType: 'burst' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 3, activity: 1.4, doseRatio: 4.0, effectiveAfterRatio: 0.1 },
+      { segmentIndex: 5, activity: 1.2, doseRatio: 3.6, effectiveAfterRatio: 0.25 },
+    ],
+  },
+  {
+    id: 'china-pearl-river-delta-tidal-network',
+    name: '珠江三角洲潮汐网河复合污染',
+    domain: '河口海岸与城市群水环境',
+    painPoint: '网河区宽窄分汊、缓流回荡与城市面源污染叠加，污染物易在低流速段滞留。',
+    researchValue: '模拟潮汐缓流、宽窄河汊和多组分城市污染的协同治理。',
+    totalRiverLengthM: 6800,
+    lightIntensity: 4.5,
+    baseNtu: 68,
+    temperature: 29,
+    pollutantType: 'organic_macromolecule',
+    pollutantMix: { organic_macromolecule: 0.35, petroleum_hydrocarbon: 0.2, nutrient_runoff: 0.25, microplastic: 0.2 },
+    segments: [
+      { id: 1, velocity: 0.75, angle: 0, directionAngle: 0, length: 0.15, depth: 3.2, width: 1.5 },
+      { id: 2, velocity: 0.38, angle: 28, directionAngle: 28, length: 0.14, depth: 4.0, width: 2.0 },
+      { id: 3, velocity: 0.22, angle: -32, directionAngle: -32, length: 0.18, depth: 3.5, width: 1.7 },
+      { id: 4, velocity: 0.55, angle: 16, directionAngle: 16, length: 0.16, depth: 2.6, width: 1.2 },
+      { id: 5, velocity: 0.18, angle: -24, directionAngle: -24, length: 0.20, depth: 4.5, width: 2.0, terrain: 'lake' },
+      { id: 6, velocity: 0.42, angle: 12, directionAngle: 12, length: 0.17, depth: 3.1, width: 1.6 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.15, pollutantType: 'organic_macromolecule', mass: 0.35, dischargeType: 'continuous' },
+      { segmentIndex: 1, positionRatio: 0.45, pollutantType: 'petroleum_hydrocarbon', mass: 0.2, dischargeType: 'burst' },
+      { segmentIndex: 3, positionRatio: 0.2, pollutantType: 'nutrient_runoff', mass: 0.25, dischargeType: 'continuous' },
+      { segmentIndex: 4, positionRatio: 0.5, pollutantType: 'microplastic', mass: 0.2, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 2, activity: 1.0, doseRatio: 2.8, effectiveAfterRatio: 0.2 },
+      { segmentIndex: 4, activity: 1.6, doseRatio: 4.2, effectiveAfterRatio: 0.1 },
+      { segmentIndex: 5, activity: 1.1, doseRatio: 2.6, effectiveAfterRatio: 0.3 },
+    ],
+  },
+  {
+    id: 'china-tarim-inland-oasis-river',
+    name: '塔里木河内陆干旱区绿洲河段',
+    domain: '干旱区水资源与生态修复',
+    painPoint: '长距离输水、强蒸发和低流速使营养盐与微塑料在尾闾河段累积。',
+    researchValue: '用于研究干旱区长河道、窄浅断面和低温差日照条件下的生态净化。',
+    totalRiverLengthM: 15000,
+    lightIntensity: 8.5,
+    baseNtu: 30,
+    temperature: 34,
+    pollutantType: 'nutrient_runoff',
+    pollutantMix: { nutrient_runoff: 0.5, microplastic: 0.3, sediment_algae: 0.2 },
+    segments: [
+      { id: 1, velocity: 0.85, angle: 0, directionAngle: 0, length: 0.18, depth: 1.0, width: 0.9 },
+      { id: 2, velocity: 0.55, angle: -14, directionAngle: -14, length: 0.18, depth: 0.8, width: 0.7 },
+      { id: 3, velocity: 0.34, angle: 20, directionAngle: 20, length: 0.20, depth: 0.7, width: 0.6 },
+      { id: 4, velocity: 0.28, angle: -16, directionAngle: -16, length: 0.17, depth: 0.6, width: 0.5 },
+      { id: 5, velocity: 0.18, angle: 8, directionAngle: 8, length: 0.15, depth: 0.9, width: 1.1, terrain: 'lake' },
+      { id: 6, velocity: 0.24, angle: -6, directionAngle: -6, length: 0.12, depth: 0.7, width: 0.8 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 1, positionRatio: 0.25, pollutantType: 'nutrient_runoff', mass: 0.5, dischargeType: 'continuous' },
+      { segmentIndex: 2, positionRatio: 0.5, pollutantType: 'microplastic', mass: 0.3, dischargeType: 'continuous' },
+      { segmentIndex: 4, positionRatio: 0.1, pollutantType: 'sediment_algae', mass: 0.2, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 2, activity: 0.9, doseRatio: 2.0, effectiveAfterRatio: 0.4 },
+      { segmentIndex: 4, activity: 1.4, doseRatio: 3.8, effectiveAfterRatio: 0.15 },
+    ],
+  },
+  {
+    id: 'china-songhua-freeze-thaw-industrial',
+    name: '松花江春季解冻期工业城镇河段',
+    domain: '寒区水环境与工业风险',
+    painPoint: '解冻期低温降低反应速率，工业城镇段有机物与石油烃复合负荷上升。',
+    researchValue: '评估低温 Arrhenius 抑制、宽缓河道和复合工业污染对催化投放的影响。',
+    totalRiverLengthM: 7200,
+    lightIntensity: 2.8,
+    baseNtu: 55,
+    temperature: 5,
+    pollutantType: 'organic_macromolecule',
+    pollutantMix: { organic_macromolecule: 0.45, petroleum_hydrocarbon: 0.35, heavy_metal: 0.2 },
+    segments: [
+      { id: 1, velocity: 1.1, angle: 0, directionAngle: 0, length: 0.18, depth: 2.2, width: 1.3 },
+      { id: 2, velocity: 0.9, angle: 10, directionAngle: 10, length: 0.17, depth: 2.8, width: 1.5 },
+      { id: 3, velocity: 0.72, angle: -18, directionAngle: -18, length: 0.20, depth: 3.1, width: 1.7 },
+      { id: 4, velocity: 0.58, angle: 14, directionAngle: 14, length: 0.18, depth: 3.6, width: 1.9 },
+      { id: 5, velocity: 0.82, angle: -8, directionAngle: -8, length: 0.15, depth: 2.7, width: 1.4 },
+      { id: 6, velocity: 1.0, angle: 6, directionAngle: 6, length: 0.12, depth: 2.4, width: 1.2 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 1, positionRatio: 0.3, pollutantType: 'organic_macromolecule', mass: 0.45, dischargeType: 'continuous' },
+      { segmentIndex: 2, positionRatio: 0.45, pollutantType: 'petroleum_hydrocarbon', mass: 0.35, dischargeType: 'burst' },
+      { segmentIndex: 3, positionRatio: 0.2, pollutantType: 'heavy_metal', mass: 0.2, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 2, activity: 1.2, doseRatio: 3.0, effectiveAfterRatio: 0.2 },
+      { segmentIndex: 4, activity: 1.5, doseRatio: 4.0, effectiveAfterRatio: 0.2 },
+    ],
+  },
+  {
+    id: 'china-lancang-mountain-hydropower',
+    name: '澜沧江高山峡谷梯级水电河段',
+    domain: '高山河流与梯级水库水环境',
+    painPoint: '高山峡谷急流与水库缓流交替，污染物在库尾回水段出现停留和再混合。',
+    researchValue: '用于研究急流-库区转换、水深突变和流向大偏折下的催化响应。',
+    totalRiverLengthM: 10500,
+    lightIntensity: 6.0,
+    baseNtu: 24,
+    temperature: 16,
+    pollutantType: 'microplastic',
+    pollutantMix: { microplastic: 0.45, organic_macromolecule: 0.35, sediment_algae: 0.2 },
+    segments: [
+      { id: 1, velocity: 3.6, angle: 0, directionAngle: 0, length: 0.13, depth: 1.4, width: 0.6 },
+      { id: 2, velocity: 4.2, angle: 26, directionAngle: 26, length: 0.15, depth: 1.2, width: 0.5 },
+      { id: 3, velocity: 1.0, angle: -20, directionAngle: -20, length: 0.18, depth: 8.0, width: 1.1 },
+      { id: 4, velocity: 0.24, angle: 8, directionAngle: 8, length: 0.24, depth: 16.0, width: 1.8, terrain: 'lake' },
+      { id: 5, velocity: 2.2, angle: -28, directionAngle: -28, length: 0.15, depth: 2.0, width: 0.7 },
+      { id: 6, velocity: 3.0, angle: 18, directionAngle: 18, length: 0.15, depth: 1.6, width: 0.6 },
+    ],
+    pollutantDischarges: [
+      { segmentIndex: 0, positionRatio: 0.25, pollutantType: 'microplastic', mass: 0.45, dischargeType: 'burst' },
+      { segmentIndex: 2, positionRatio: 0.35, pollutantType: 'organic_macromolecule', mass: 0.35, dischargeType: 'continuous' },
+      { segmentIndex: 3, positionRatio: 0.4, pollutantType: 'sediment_algae', mass: 0.2, dischargeType: 'continuous' },
+    ],
+    catalystPlacements: [
+      { segmentIndex: 3, activity: 1.7, doseRatio: 4.6, effectiveAfterRatio: 0.12 },
+      { segmentIndex: 5, activity: 1.2, doseRatio: 2.8, effectiveAfterRatio: 0.25 },
+    ],
+  },
+];
+
 // ═══════════════════════════════════════════════════════════════
 //  向后兼容类型别名
 // ═══════════════════════════════════════════════════════════════
@@ -192,8 +569,8 @@ interface PhysicsConstants {
   ALPHA_PER_NTU: number;
   STANDARD_WIDTH_M: number;
   STANDARD_DEPTH_M: number;
-  NTU_COEFFICIENT: Record<PollutantType, number>;
-  NATURAL_DECAY_BOOST: Record<PollutantType, number>;
+  NTU_COEFFICIENT: Record<BuiltInPollutantType, number>;
+  NATURAL_DECAY_BOOST: Record<BuiltInPollutantType, number>;
   LAKE_WIDTH_MULTIPLIER: number;
   LAKE_DEPTH_MULTIPLIER: number;
   ACTIVATION_ENERGY_OVER_R: number;
@@ -260,10 +637,17 @@ interface CatalystEntry {
 /** 催化剂按段查找表 */
 type CatalystMap = Map<number, CatalystEntry[]>;
 
+interface DischargeEvent {
+  mass: number;
+  positionRatio: number;
+}
+
 /** 段级排污负荷分解 */
 interface DischargeLoad {
-  burstMass: number;            // 段首突发质量
-  continuousRate: number;       // 沿段均匀排放速率 (mass/m)
+  burstMass: number;            // 兼容字段：该段瞬时排放总质量
+  continuousRate: number;       // 兼容字段：该段连续排放总质量
+  burstEvents: DischargeEvent[];
+  continuousEvents: DischargeEvent[];
 }
 
 /** NTU 预扫描结果 */
@@ -303,8 +687,106 @@ function temperatureFactor(celsius: number, consts: PhysicsConstants): number {
   );
 }
 
-function supportsSettling(type: PollutantType): boolean {
-  return type === 'sediment_algae' || type === 'microplastic';
+function supportsSettling(
+  type: PollutantType,
+  customPollutants?: Record<string, CustomPollutantProfile>,
+): boolean {
+  return customPollutants?.[type]?.supportsSettling === true
+    || type === 'sediment_algae'
+    || type === 'microplastic';
+}
+
+function normalizePollutantMix(mix: PollutantMix | undefined, fallback: PollutantType): Record<string, number> {
+  const normalized: Record<string, number> = {};
+  let total = 0;
+  if (mix) {
+    for (const key of Object.keys(mix)) {
+      const value = Math.max(0, mix[key] ?? 0);
+      normalized[key] = value;
+      total += value;
+    }
+  }
+
+  if (total <= 0) {
+    normalized[fallback] = 1;
+    return normalized;
+  }
+
+  for (const key of Object.keys(normalized)) {
+    normalized[key] = normalized[key] / total;
+  }
+  return normalized;
+}
+
+function dominantPollutantType(mix: Record<string, number>, fallback: PollutantType): PollutantType {
+  let dominant = fallback;
+  let maxShare = -1;
+  for (const [type, share] of Object.entries(mix)) {
+    if (share > maxShare) {
+      dominant = type;
+      maxShare = share;
+    }
+  }
+  return dominant;
+}
+
+function weightedConstant(
+  mix: Record<string, number>,
+  resolver: (type: PollutantType) => number,
+): number {
+  return Object.entries(mix).reduce(
+    (sum, [type, share]) => sum + share * resolver(type),
+    0,
+  );
+}
+
+function mixtureSupportsSettling(
+  mix: Record<string, number>,
+  customPollutants?: Record<string, CustomPollutantProfile>,
+): boolean {
+  return Object.entries(mix).some(([type, share]) => share > 0.05 && supportsSettling(type, customPollutants));
+}
+
+function mixtureDepositionBase(
+  mix: Record<string, number>,
+  customPollutants?: Record<string, CustomPollutantProfile>,
+): number {
+  const customSettlingShare = Object.entries(mix).reduce(
+    (sum, [type, share]) => sum + (customPollutants?.[type]?.supportsSettling ? share : 0),
+    0,
+  );
+  return 0.00035 + (mix.sediment_algae ?? 0) * 0.00085 + customSettlingShare * 0.0005;
+}
+
+function mixtureResuspensionBase(
+  mix: Record<string, number>,
+  customPollutants?: Record<string, CustomPollutantProfile>,
+): number {
+  const customSettlingShare = Object.entries(mix).reduce(
+    (sum, [type, share]) => sum + (customPollutants?.[type]?.supportsSettling ? share : 0),
+    0,
+  );
+  return 0.00075 + (mix.sediment_algae ?? 0) * 0.00125 + customSettlingShare * 0.0007;
+}
+
+function getNtuCoefficient(
+  type: PollutantType,
+  consts: PhysicsConstants,
+  customPollutants?: Record<string, CustomPollutantProfile>,
+): number {
+  return customPollutants?.[type]?.ntuCoefficient
+    ?? consts.NTU_COEFFICIENT[type as BuiltInPollutantType]
+    ?? consts.NTU_COEFFICIENT.organic_macromolecule;
+}
+
+function getNaturalDecayBoost(
+  type: PollutantType,
+  consts: PhysicsConstants,
+  customPollutants?: Record<string, CustomPollutantProfile>,
+): number {
+  return customPollutants?.[type]?.naturalDecayBoost
+    ?? consts.NATURAL_DECAY_BOOST[type as BuiltInPollutantType]
+    ?? consts.NATURAL_DECAY_BOOST.organic_macromolecule;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -327,9 +809,12 @@ export function simulatePurification(
   // 向后兼容：支持旧 SimulationParams 未传必填字段的场景
   const baseNtu = params.baseNtu ?? (params as SimulationParams).turbidity ?? 5;
   const pollutantType = params.pollutantType || 'organic_macromolecule';
+  const pollutantMix = normalizePollutantMix(params.pollutantMix, pollutantType);
+  const assessmentPollutantType = dominantPollutantType(pollutantMix, pollutantType);
   const temperature = params.temperature ?? 25;
+  const customPollutants = params.customPollutants;
 
-  const TOTAL_RIVER_M = 1000;
+  const TOTAL_RIVER_M = params.totalRiverLengthM ?? 1000;
   const totalPhysicalSteps = 200;
 
   // ① 支流独立仿真（原始物理结果，尚未投影）
@@ -340,24 +825,24 @@ export function simulatePurification(
       : [{ segmentIndex: 0, positionRatio: 0, pollutantType, mass: 1.0, dischargeType: 'continuous' as const }];
     secondaryRaw = runSingleRiver(
       secondarySegments, secDischarges, catalystPlacements ?? [],
-      baseNtu, pollutantType, lightIntensity, temperature, TOTAL_RIVER_M, totalPhysicalSteps,
-      constants, undefined, undefined, undefined,
+      baseNtu, pollutantType, pollutantMix, lightIntensity, temperature, TOTAL_RIVER_M, totalPhysicalSteps,
+      constants, customPollutants, undefined, undefined, undefined,
     );
   }
 
   // ② 主河仿真（传入支流原始结果用于汇合混合）
   const result = runSingleRiver(
     segments, pollutantDischarges, catalystPlacements ?? [],
-    baseNtu, pollutantType, lightIntensity, temperature, TOTAL_RIVER_M, totalPhysicalSteps,
-    constants, confluenceConfig, secondaryRaw, secondarySegments,
+    baseNtu, pollutantType, pollutantMix, lightIntensity, temperature, TOTAL_RIVER_M, totalPhysicalSteps,
+    constants, customPollutants, confluenceConfig, secondaryRaw, secondarySegments,
   );
 
   // ③ 渲染投影
-  const projected = projectToCanvas(result, gridWidth, gridHeight, pollutantType);
+  const projected = projectToCanvas(result, gridWidth, gridHeight, assessmentPollutantType);
 
   // ④ 支流投影 + 组装完整结果
   if (secondaryRaw) {
-    const secProjected = projectToCanvas(secondaryRaw, gridWidth, gridHeight, pollutantType);
+    const secProjected = projectToCanvas(secondaryRaw, gridWidth, gridHeight, assessmentPollutantType);
     projected.secondaryResult = {
       segmentOutConcentrations: secProjected.segmentOutConcentrations,
       segmentOutNtu: secProjected.segmentOutNtu,
@@ -445,18 +930,27 @@ function estimateNTUBaseline(
   effectiveSegs: EffectiveSegment[],
   segLoads: DischargeLoad[],
   baseNtu: number,
-  pollutantType: PollutantType,
+  pollutantMix: Record<string, number>,
   lightIntensity: number,
   consts: PhysicsConstants,
   totalPhysicalSteps: number,
+  customPollutants?: Record<string, CustomPollutantProfile>,
 ): NTUBaseline {
-  const ntuCoeff = consts.NTU_COEFFICIENT[pollutantType];
-  const naturalBoost = consts.NATURAL_DECAY_BOOST[pollutantType];
+  const ntuCoeff = weightedConstant(
+    pollutantMix,
+    type => getNtuCoefficient(type, consts, customPollutants),
+  );
+  const naturalBoost = weightedConstant(
+    pollutantMix,
+    type => getNaturalDecayBoost(type, consts, customPollutants),
+  );
   const perSegmentNtu: number[] = [];
   const perSegmentAlpha: number[] = [];
 
-  // 初始浓度：第一段 burstMass 或 1.0
-  let conc = segLoads[0]?.burstMass ?? 1.0;
+  // 初始浓度：仅注入第一段 0 位置的瞬时排放
+  let conc = (segLoads[0]?.burstEvents ?? [])
+    .filter(event => event.positionRatio <= 0)
+    .reduce((sum, event) => sum + event.mass, 0);
   conc = clamp(conc, 0, 1);
 
   // 粗扫描：每段用 max(totalPhysicalSteps * length, 10) 步
@@ -465,27 +959,36 @@ function estimateNTUBaseline(
     const coarseSteps = Math.max(10, Math.round(totalPhysicalSteps * (seg.physicalLengthM / 1000)));
     const stepLength = seg.physicalLengthM / coarseSteps;
 
-    // 段间混合（若有新排污）
-    if (sIdx > 0 && segLoads[sIdx]) {
-      const load = segLoads[sIdx];
-      const newMass = load.burstMass * seg.dischargeFlow;
-      const prevMass = conc * seg.dischargeFlow;
-      conc = (prevMass + newMass) / seg.dischargeFlow;
-      conc = clamp(conc, 0, 1);
-    }
+    const load = segLoads[sIdx];
+    const appliedBurst = new Set<number>(
+      sIdx === 0
+        ? load.burstEvents.flatMap((event, idx) => event.positionRatio <= 0 ? [idx] : [])
+        : [],
+    );
 
     for (let step = 0; step < coarseSteps; step++) {
+      const endRatio = (step + 1) / coarseSteps;
+
+      for (let eventIdx = 0; eventIdx < load.burstEvents.length; eventIdx++) {
+        const event = load.burstEvents[eventIdx];
+        if (appliedBurst.has(eventIdx) || event.positionRatio > endRatio) continue;
+        conc = clamp(conc + event.mass, 0, 1);
+        appliedBurst.add(eventIdx);
+      }
+
       const ntu = baseNtu + conc * ntuCoeff;
       const alpha = consts.ALPHA_BASE + ntu * consts.ALPHA_PER_NTU;
       const I_eff = lightIntensity * Math.exp(-alpha * seg.effectiveDepth);
       const k = consts.K_PHOTOLYSIS * I_eff + consts.K_BIODEGRADATION * naturalBoost;
       const dt = stepLength / seg.effectiveVelocity;
       conc *= Math.exp(-k * dt);
-      // 连续排污贡献（该段总质量均匀分配到每步）
-      if (segLoads[sIdx]?.continuousRate > 0) {
-        conc += segLoads[sIdx].continuousRate / coarseSteps;
-        conc = clamp(conc, 0, 1);
+      // 连续排污贡献：从指定段内位置开始均匀分配到剩余流程
+      for (const event of load.continuousEvents) {
+        if (endRatio < event.positionRatio) continue;
+        const remainingSteps = Math.max(1, coarseSteps - Math.round(coarseSteps * event.positionRatio));
+        conc += event.mass / remainingSteps;
       }
+      conc = clamp(conc, 0, 1);
     }
 
     const exitNtu = baseNtu + conc * ntuCoeff;
@@ -511,22 +1014,35 @@ function computeDischargeLoads(
   const loads: DischargeLoad[] = effectiveSegs.map(() => ({
     burstMass: 0,
     continuousRate: 0,
+    burstEvents: [],
+    continuousEvents: [],
   }));
 
   // 无排污配置 → 默认段首 100% 污染 (burst)
   if (!discharges || discharges.length === 0) {
-    loads[0] = { burstMass: 1.0, continuousRate: 0 };
+    loads[0] = {
+      burstMass: 1.0,
+      continuousRate: 0,
+      burstEvents: [{ mass: 1.0, positionRatio: 0 }],
+      continuousEvents: [],
+    };
     return loads;
   }
 
   // 累加原始质量
   for (const d of discharges) {
     if (d.segmentIndex < 0 || d.segmentIndex >= loads.length) continue;
+    const event = {
+      mass: Math.max(0, d.mass),
+      positionRatio: clamp(d.positionRatio ?? 0, 0, 1),
+    };
     if (d.dischargeType === 'burst') {
-      loads[d.segmentIndex].burstMass += d.mass;
+      loads[d.segmentIndex].burstMass += event.mass;
+      loads[d.segmentIndex].burstEvents.push(event);
     } else {
       // continuousRate 存储该段总连续质量，单位无量纲
-      loads[d.segmentIndex].continuousRate += d.mass;
+      loads[d.segmentIndex].continuousRate += event.mass;
+      loads[d.segmentIndex].continuousEvents.push(event);
     }
   }
 
@@ -538,6 +1054,8 @@ function computeDischargeLoads(
   for (const l of loads) {
     l.burstMass = l.burstMass / maxVal;
     l.continuousRate = l.continuousRate / maxVal;
+    l.burstEvents = l.burstEvents.map(event => ({ ...event, mass: event.mass / maxVal }));
+    l.continuousEvents = l.continuousEvents.map(event => ({ ...event, mass: event.mass / maxVal }));
   }
 
   return loads;
@@ -622,6 +1140,8 @@ interface IntegrationInput {
   catalystMap: CatalystMap;
   baseNtu: number;
   pollutantType: PollutantType;
+  pollutantMix: Record<string, number>;
+  customPollutants?: Record<string, CustomPollutantProfile>;
   lightIntensity: number;
   temperature: number;
   consts: PhysicsConstants;
@@ -647,24 +1167,32 @@ interface IntegrationOutput {
 function integrate(input: IntegrationInput): IntegrationOutput {
   const {
     effectiveSegs, segLoads, catalystMap, baseNtu,
-    pollutantType, lightIntensity, temperature, consts,
+    pollutantType, pollutantMix, customPollutants, lightIntensity, temperature, consts,
     totalPhysicalSteps, optimalSegmentIndex,
     confluenceConfig, secondaryResult, secondarySegs,
   } = input;
 
-  const ntuCoeff = consts.NTU_COEFFICIENT[pollutantType];
-  const naturalBoost = consts.NATURAL_DECAY_BOOST[pollutantType];
+  const ntuCoeff = weightedConstant(
+    pollutantMix,
+    type => getNtuCoefficient(type, consts, customPollutants),
+  );
+  const naturalBoost = weightedConstant(
+    pollutantMix,
+    type => getNaturalDecayBoost(type, consts, customPollutants),
+  );
   const tempFactor = temperatureFactor(temperature, consts);
-  const settlingEnabled = supportsSettling(pollutantType);
-  const depositionBase = pollutantType === 'sediment_algae' ? 0.0012 : 0.00035;
-  const resuspensionBase = pollutantType === 'sediment_algae' ? 0.0020 : 0.00075;
+  const settlingEnabled = supportsSettling(pollutantType, customPollutants) || mixtureSupportsSettling(pollutantMix, customPollutants);
+  const depositionBase = mixtureDepositionBase(pollutantMix, customPollutants);
+  const resuspensionBase = mixtureResuspensionBase(pollutantMix, customPollutants);
 
   const physicsPoints: PhysicsPoint[] = [];
   const segmentOutConcentrations: number[] = [];
   const segmentOutNtu: number[] = [];
 
-  // 初始浓度
-  let concentration = segLoads[0]?.burstMass ?? 1.0;
+  // 初始浓度：仅注入第一段 0 位置的瞬时排放
+  let concentration = (segLoads[0]?.burstEvents ?? [])
+    .filter(event => event.positionRatio <= 0)
+    .reduce((sum, event) => sum + event.mass, 0);
   concentration = clamp(concentration, 0, 1);
   let bedStore = 0;
   let distanceM = 0;
@@ -674,25 +1202,34 @@ function integrate(input: IntegrationInput): IntegrationOutput {
     const stepsThisSeg = Math.max(1, Math.round(totalPhysicalSteps * (seg.physicalLengthM / 1000)));
     const physicalStep = seg.physicalLengthM / stepsThisSeg;
 
-    // 段间混合：若有新排污，按质量守恒 + 流量比稀释
+    // 段间混合：按上下游流量变化稀释已有污染物
     if (sIdx > 0) {
-      const load = segLoads[sIdx];
-      if (load && (load.burstMass > 0 || load.continuousRate > 0)) {
-        const prevFlow = effectiveSegs[sIdx - 1].dischargeFlow;
-        const thisFlow = seg.dischargeFlow;
-        // 质量守恒：来自上一段的污染物质量 + 段首 burst 注入，除以当前段流量
-        concentration = concentration * (prevFlow / thisFlow) + load.burstMass;
-        concentration = clamp(concentration, 0, 1);
-      }
+      const prevFlow = effectiveSegs[sIdx - 1].dischargeFlow;
+      const thisFlow = seg.dischargeFlow;
+      concentration = clamp(concentration * (prevFlow / thisFlow), 0, 1);
     }
 
     // 该段的催化剂条目
     const catalystsInSeg = catalystMap.get(sIdx) ?? [];
+    const load = segLoads[sIdx];
+    const appliedBurst = new Set<number>(
+      sIdx === 0
+        ? load.burstEvents.flatMap((event, idx) => event.positionRatio <= 0 ? [idx] : [])
+        : [],
+    );
 
     for (let step = 0; step < stepsThisSeg; step++) {
       const progressRatio = step / stepsThisSeg;
+      const endRatio = (step + 1) / stepsThisSeg;
       const stepTime = physicalStep / seg.effectiveVelocity;
       const stepRatio = 1 / stepsThisSeg;
+
+      for (let eventIdx = 0; eventIdx < load.burstEvents.length; eventIdx++) {
+        const event = load.burstEvents[eventIdx];
+        if (appliedBurst.has(eventIdx) || event.positionRatio > endRatio) continue;
+        concentration = clamp(concentration + event.mass, 0, 1);
+        appliedBurst.add(eventIdx);
+      }
 
       const computeK = (conc: number, ratio: number) => {
         const ntu = baseNtu + conc * ntuCoeff;
@@ -733,11 +1270,13 @@ function integrate(input: IntegrationInput): IntegrationOutput {
         concentration = clamp(concentration + resuspended, 0, 1);
       }
 
-      // 连续排污贡献（该段总质量均匀分配到每步）
-      if (segLoads[sIdx]?.continuousRate > 0) {
-        concentration += segLoads[sIdx].continuousRate / stepsThisSeg;
-        concentration = clamp(concentration, 0, 1);
+      // 连续排污贡献：从指定段内位置开始均匀分配到剩余流程
+      for (const event of load.continuousEvents) {
+        if (endRatio < event.positionRatio) continue;
+        const remainingSteps = Math.max(1, stepsThisSeg - Math.round(stepsThisSeg * event.positionRatio));
+        concentration += event.mass / remainingSteps;
       }
+      concentration = clamp(concentration, 0, 1);
 
       // ── 汇合点处理（双河模式）───────────────────
       if (confluenceConfig && secondaryResult && sIdx === confluenceConfig.river0Segment) {
@@ -930,11 +1469,13 @@ function runSingleRiver(
   catalystPlacements: CatalystPlacement[],
   baseNtu: number,
   pollutantType: PollutantType,
+  pollutantMix: Record<string, number>,
   lightIntensity: number,
   temperature: number,
   totalRiverM: number,
   totalPhysicalSteps: number,
   consts: PhysicsConstants,
+  customPollutants?: Record<string, CustomPollutantProfile>,
   confluenceConfig?: ConfluenceConfig,
   secondaryData?: RawSimulationResult,
   secondarySegments?: RiverSegmentV3[],
@@ -950,8 +1491,8 @@ function runSingleRiver(
 
   // A4. NTU 预扫描
   const ntuBaseline = estimateNTUBaseline(
-    effectiveSegs, segLoads, baseNtu, pollutantType,
-    lightIntensity, consts, totalPhysicalSteps,
+    effectiveSegs, segLoads, baseNtu, pollutantMix,
+    lightIntensity, consts, totalPhysicalSteps, customPollutants,
   );
 
   // A5. 段指标（使用 NTU 预扫描结果）
@@ -977,6 +1518,8 @@ function runSingleRiver(
     catalystMap,
     baseNtu,
     pollutantType,
+    pollutantMix,
+    customPollutants,
     lightIntensity,
     temperature,
     consts,

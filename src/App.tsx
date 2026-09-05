@@ -2,14 +2,23 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { SegmentControlPanel } from './components/SegmentControlPanel';
 import { Dashboard } from './components/Dashboard';
 import { RiverCanvas } from './components/RiverCanvas';
+import { RiverObservationNote } from './components/RiverObservationNote';
+import { WeatherWaterStatus } from './components/WeatherWaterStatus';
 import {
+  ACADEMIC_SCENARIO_PRESETS,
+  getPollutantLabel,
+  getSegmentAngle,
   simulatePurification,
   type SimulationResult,
   type SimulationResultV3,
   type RiverSegment,
   type SimulationParamsV3,
   type PollutantType,
+  type PollutantMix,
+  type PollutantDischarge,
+  type CustomPollutantProfile,
   type CatalystPlacement,
+  type ScenarioPreset,
 } from './engine/simulation';
 import type { ParetoPoint } from './engine/optimizer';
 import type { WaterQualityClass } from './engine/waterQuality';
@@ -19,7 +28,6 @@ import {
   fetchScenarios,
   saveScenario,
   deleteScenario,
-  updateScenario,
   runSimulation,
   connectWS,
   fetchRooms,
@@ -42,13 +50,32 @@ const GRID_W = 400;
 const GRID_H = 150;
 
 const DEFAULT_SEGMENTS: RiverSegment[] = [
-  { id: 1, velocity: 2.0, directionAngle: 0,  length: 1/3, depth: 1.5, width: 1.0 },
-  { id: 2, velocity: 1.5, directionAngle: 15, length: 1/3, depth: 2.0, width: 1.2 },
-  { id: 3, velocity: 2.5, directionAngle: -10, length: 1/3, depth: 1.0, width: 0.8 },
+  { id: 1, velocity: 2.0, angle: 0, directionAngle: 0,  length: 1/3, depth: 1.5, width: 1.0 },
+  { id: 2, velocity: 1.5, angle: 15, directionAngle: 15, length: 1/3, depth: 2.0, width: 1.2 },
+  { id: 3, velocity: 2.5, angle: -10, directionAngle: -10, length: 1/3, depth: 1.0, width: 0.8 },
 ];
 
+const DEFAULT_TOTAL_RIVER_LENGTH_M = 1000;
 const ANIM_DURATION = 6;
-const ANIM_STEP = 0.05;
+
+function clonePresetSegments(preset: ScenarioPreset): RiverSegment[] {
+  return preset.segments.map(seg => ({ ...seg }));
+}
+
+function clonePresetDischarges(preset: ScenarioPreset): PollutantDischarge[] {
+  return preset.pollutantDischarges.map(d => ({ ...d }));
+}
+
+function clonePresetPlacements(preset: ScenarioPreset): CatalystPlacement[] {
+  return preset.catalystPlacements.map(p => ({ ...p }));
+}
+
+function formatPollutantMix(mix: PollutantMix): string {
+  return Object.entries(mix)
+    .filter(([, share]) => (share ?? 0) > 0)
+    .map(([type, share]) => `${Math.round((share ?? 0) * 100)}% ${getPollutantLabel(type as PollutantType)}`)
+    .join(' + ');
+}
 
 // ═══════════════════════════════════════════════════════════════
 // 工具函数
@@ -97,11 +124,17 @@ function apiResultToSimResult(r: SimulateResult): SimulationResultV3 {
 function App() {
   // ── 仿真参数 ──────────────────────────────────────────────
   const [segments, setSegments] = useState<RiverSegment[]>(DEFAULT_SEGMENTS);
+  const [selectedPresetId, setSelectedPresetId] = useState('');
+  const [totalRiverLengthM, setTotalRiverLengthM] = useState(DEFAULT_TOTAL_RIVER_LENGTH_M);
   const [light, setLight] = useState(1.0);
   const [catalyst, setCatalyst] = useState(0.8);
   const [depth, setDepth] = useState(1.5);
   const [turbidity, setTurbidity] = useState(5);
+  const [temperature, setTemperature] = useState(25);
   const [pollutantType, setPollutantType] = useState<PollutantType>('organic_macromolecule');
+  const [pollutantMix, setPollutantMix] = useState<PollutantMix>({ organic_macromolecule: 1 });
+  const [customPollutants, setCustomPollutants] = useState<Record<string, CustomPollutantProfile>>({});
+  const [pollutantDischarges, setPollutantDischarges] = useState<PollutantDischarge[]>([]);
   const [doseRatio, setDoseRatio] = useState(2.0);
   const [catalystPlacements, setCatalystPlacements] = useState<CatalystPlacement[]>([]);
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -128,10 +161,41 @@ function App() {
     return [{ segmentIndex: 0, activity: catalyst, doseRatio }];
   }, [catalystPlacements, catalyst, doseRatio, result?.optimalSegmentIndex]);
 
+  const selectedPreset = useMemo(
+    () => ACADEMIC_SCENARIO_PRESETS.find(p => p.id === selectedPresetId),
+    [selectedPresetId],
+  );
+
+  const handleApplyPreset = useCallback((presetId: string) => {
+    const preset = ACADEMIC_SCENARIO_PRESETS.find(p => p.id === presetId);
+    setSelectedPresetId(presetId);
+    if (!preset) return;
+
+    setTotalRiverLengthM(preset.totalRiverLengthM);
+    setLight(preset.lightIntensity);
+    setTurbidity(preset.baseNtu);
+    setTemperature(preset.temperature);
+    setPollutantType(preset.pollutantType);
+    setPollutantMix({ ...preset.pollutantMix });
+    setPollutantDischarges(clonePresetDischarges(preset));
+    setSegments(clonePresetSegments(preset));
+    setCatalystPlacements(clonePresetPlacements(preset));
+
+    const firstPlacement = preset.catalystPlacements[0];
+    if (firstPlacement) {
+      setCatalyst(firstPlacement.activity);
+      setDoseRatio(firstPlacement.doseRatio);
+    }
+    setParetoFrontier(undefined);
+    setBaselineConcentration(undefined);
+    setRequiredDose(null);
+  }, []);
+
   // ── 动画 ──────────────────────────────────────────────────
-  const [animTime, setAnimTime] = useState(0);
+  const [animTime, setAnimTime] = useState(ANIM_DURATION);
   const [isRunning, setIsRunning] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastFrameRef = useRef<number | null>(null);
 
   // ── 阶段一：场景方案库 ────────────────────────────────────
   const [scenarios, setScenarios] = useState<ScenarioListItem[]>([]);
@@ -146,13 +210,15 @@ function App() {
   // ── 仿真历史记录面板 ────────────────────────────────────
   const [simRecords, setSimRecords] = useState<SimulationRecordListItem[]>([]);
   const [simHistoryOpen, setSimHistoryOpen] = useState(false);
-  const [selectedRecordDetail, setSelectedRecordDetail] = useState<SimulationRecordListItem | null>(null);
+  const [, setSelectedRecordDetail] = useState<SimulationRecordListItem | null>(null);
 
   // ── 阶段二：仿真模式切换 ──────────────────────────────────
   const [useRemote, setUseRemote] = useState(false);
   const [simLoading, setSimLoading] = useState(false);
   const [simError, setSimError] = useState<string | null>(null);
   const [computeTime, setComputeTime] = useState<number | null>(null);
+  const [showDrifter, setShowDrifter] = useState(true);
+  const [drifterInteractive, setDrifterInteractive] = useState(false);
 
   // ── 阶段三：多人协同 ──────────────────────────────────────
   const [wsMode, setWsMode] = useState(false);
@@ -214,7 +280,7 @@ function App() {
         turbidity,
         segments: segments.map(s => ({
           id: s.id, velocity: s.velocity,
-          directionAngle: s.directionAngle, length: s.length,
+          angle: getSegmentAngle(s), directionAngle: getSegmentAngle(s), length: s.length,
           depth: s.depth ?? 1.5, width: s.width ?? 1.0,
         })),
         result_json: resultJson,
@@ -228,6 +294,15 @@ function App() {
     }
   }, [result, backendOnline, light, catalyst, turbidity, segments, computeTime, simHistoryOpen, loadSimRecords]);
 
+  // ── 动画控制 ──────────────────────────────────────────────
+  const clearTimer = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    lastFrameRef.current = null;
+  }, []);
+
   // ── 仿真计算（本地 or 远程） ──────────────────────────────
   useEffect(() => {
     if (useRemote) {
@@ -238,11 +313,12 @@ function App() {
       runSimulation({
         light_intensity: light,
         base_ntu: turbidity,
-        pollutant_type: 'organic_macromolecule',
+        pollutant_type: pollutantType,
         segments: segments.map(s => ({
           id: s.id,
           velocity: s.velocity,
-          directionAngle: s.directionAngle,
+          angle: getSegmentAngle(s),
+          directionAngle: getSegmentAngle(s),
           length: s.length,
           depth: s.depth ?? 1.5,
           width: s.width ?? 1.0,
@@ -272,7 +348,12 @@ function App() {
         segments: segments as any,
         lightIntensity: light,
         baseNtu: turbidity,
+        totalRiverLengthM,
+        temperature,
         pollutantType,
+        pollutantMix,
+        customPollutants,
+        pollutantDischarges,
         catalystPlacements: effectivePlacements.length > 0 ? effectivePlacements : undefined,
       };
       const res = simulatePurification(v4Params);
@@ -280,33 +361,40 @@ function App() {
     }
     // 重置动画
     clearTimer();
-    setAnimTime(0);
+    setAnimTime(ANIM_DURATION);
     setIsRunning(false);
-  }, [segments, light, catalyst, depth, turbidity, pollutantType, doseRatio, effectivePlacements, useRemote]); // eslint-disable-line
-
-  // ── 动画控制 ──────────────────────────────────────────────
-  const clearTimer = useCallback(() => {
-    if (timerRef.current !== null) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
+  }, [segments, light, catalyst, depth, turbidity, totalRiverLengthM, temperature, pollutantType, pollutantMix, customPollutants, pollutantDischarges, doseRatio, effectivePlacements, useRemote]); // eslint-disable-line
 
   const handleStart = useCallback(() => {
     if (isRunning) return;
+    if (animTime >= ANIM_DURATION) setAnimTime(0);
     setIsRunning(true);
-    timerRef.current = setInterval(() => {
+  }, [isRunning, animTime]);
+
+  useEffect(() => {
+    if (!isRunning) {
+      clearTimer();
+      return;
+    }
+
+    lastFrameRef.current = performance.now();
+    const tick = (now: number) => {
+      const last = lastFrameRef.current ?? now;
+      const delta = Math.min(0.08, Math.max(0, (now - last) / 1000));
+      lastFrameRef.current = now;
       setAnimTime(prev => {
-        if (prev >= ANIM_DURATION) {
-          clearInterval(timerRef.current!);
-          timerRef.current = null;
+        const next = Math.min(ANIM_DURATION, prev + delta);
+        if (next >= ANIM_DURATION) {
           setIsRunning(false);
-          return ANIM_DURATION;
         }
-        return prev + ANIM_STEP;
+        return next;
       });
-    }, ANIM_STEP * 1000);
-  }, [isRunning]);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return clearTimer;
+  }, [isRunning, clearTimer]);
 
   const handlePause = useCallback(() => { clearTimer(); setIsRunning(false); }, [clearTimer]);
   const handleReset = useCallback(() => { clearTimer(); setIsRunning(false); setAnimTime(0); }, [clearTimer]);
@@ -325,7 +413,8 @@ function App() {
         segments: segments.map(s => ({
           id: s.id,
           velocity: s.velocity,
-          directionAngle: s.directionAngle,
+          angle: getSegmentAngle(s),
+          directionAngle: getSegmentAngle(s),
           length: s.length,
           depth: s.depth ?? 1.5,
           width: s.width ?? 1.0,
@@ -399,7 +488,8 @@ function App() {
           segments: segments.map(s => ({
             id: s.id,
             velocity: s.velocity,
-            directionAngle: s.directionAngle,
+            angle: getSegmentAngle(s),
+            directionAngle: getSegmentAngle(s),
             length: s.length,
             depth: s.depth ?? 1.5,
             width: s.width ?? 1.0,
@@ -433,7 +523,7 @@ function App() {
         turbidity,
         segments: segments.map(s => ({
           id: s.id, velocity: s.velocity,
-          directionAngle: s.directionAngle, length: s.length,
+          angle: getSegmentAngle(s), directionAngle: getSegmentAngle(s), length: s.length,
           depth: s.depth ?? 1.5, width: s.width ?? 1.0,
         })),
         author: saveAuthor.trim() || '匿名研究者',
@@ -455,14 +545,19 @@ function App() {
       const list = await fetchScenarios();
       const s = list.find(x => x.id === id);
       if (!s) return;
+      setSelectedPresetId('');
+      setTotalRiverLengthM(DEFAULT_TOTAL_RIVER_LENGTH_M);
       setLight(s.light_intensity);
       setCatalyst(s.catalyst_efficiency);
       setDepth(s.river_depth);
       setTurbidity(s.turbidity);
+      setPollutantMix({ [pollutantType]: 1 });
+      setPollutantDischarges([]);
       setSegments(s.segments.map(seg => ({
         id: seg.id,
         velocity: seg.velocity,
-        directionAngle: seg.directionAngle,
+        angle: seg.angle ?? seg.directionAngle ?? 0,
+        directionAngle: seg.angle ?? seg.directionAngle ?? 0,
         length: seg.length,
         depth: (seg as any).depth ?? 1.5,
         width: (seg as any).width ?? 1.0,
@@ -470,7 +565,7 @@ function App() {
     } catch {
       alert('加载失败，请确认后端已启动');
     }
-  }, []);
+  }, [pollutantType]);
 
   const handleDelete = useCallback(async (id: number) => {
     if (!confirm('确认删除此场景？')) return;
@@ -555,21 +650,26 @@ function App() {
   }, [result]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 p-5 font-sans text-gray-800">
-      <div className="max-w-screen-xl mx-auto flex flex-col gap-5">
+    <div className="app-shell min-h-screen p-5 font-sans">
+      <div className="app-frame max-w-[1440px] mx-auto flex flex-col gap-5">
         {/* ── Header ──────────────────────────────────────── */}
-        <header className="text-white">
-          <div className="flex items-center justify-between">
+        <header className="app-header">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                🌊 河流光催化净化动态仿真系统
+              <h1 className="neon-title text-2xl font-bold tracking-tight">
+                城市河流净化观察台
               </h1>
-              <p className="text-slate-400 text-sm mt-1">
-                基于微积分切片思想与指数衰减模型 · 前后端分离数字孪生系统
+              <p className="app-subtitle text-sm mt-1">
+                像调一条真实河道一样，观察阳光、水流、浑浊和净化效果
               </p>
             </div>
-            {/* 后端状态指示器 */}
             <div className="flex items-center gap-3">
+              <WeatherWaterStatus
+                light={light}
+                turbidity={turbidity}
+                temperature={temperature}
+                backendOnline={backendOnline}
+              />
               <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${
                 backendOnline ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'
               }`}>
@@ -580,9 +680,39 @@ function App() {
           </div>
         </header>
 
+        {/* ── 内置学术级预设场景库 ───────────────────────────── */}
+        <div className="toolbar-glass bg-white/10 backdrop-blur rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
+          <span className="text-slate-300 text-sm font-medium whitespace-nowrap">
+            常见河道场景
+          </span>
+          <select
+            className="bg-slate-700 text-white text-sm px-3 py-1.5 rounded-lg border border-slate-600 focus:ring-2 focus:ring-cyan-400 min-w-[300px]"
+            value={selectedPresetId}
+            onChange={e => handleApplyPreset(e.target.value)}
+            aria-label="选择常见河道场景"
+          >
+            <option value="">— 选一条类似的河道 —</option>
+            {ACADEMIC_SCENARIO_PRESETS.map(preset => (
+              <option key={preset.id} value={preset.id}>
+                {preset.name} · {preset.domain}
+              </option>
+            ))}
+          </select>
+          {selectedPreset && (
+            <div className="flex-1 min-w-[280px] text-xs text-slate-300 leading-relaxed">
+              <span className="text-cyan-200 font-semibold">{selectedPreset.domain}</span>
+              <span className="mx-2 text-slate-500">|</span>
+              <span>{formatPollutantMix(selectedPreset.pollutantMix)}</span>
+              <span className="mx-2 text-slate-500">|</span>
+              <span>{(selectedPreset.totalRiverLengthM / 1000).toFixed(1)} km · 浑浊 {selectedPreset.baseNtu} NTU · 阳光 {selectedPreset.lightIntensity}</span>
+              <p className="text-slate-400 mt-1">{selectedPreset.researchValue}</p>
+            </div>
+          )}
+        </div>
+
         {/* ── 场景方案库工具栏（阶段一）────────────────────── */}
         {backendOnline && (
-          <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
+          <div className="toolbar-glass bg-white/10 backdrop-blur rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
             <span className="text-slate-300 text-sm font-medium whitespace-nowrap">
               📁 场景方案库
             </span>
@@ -675,7 +805,7 @@ function App() {
 
         {/* ── 仿真历史面板 ──────────────────────────────────── */}
         {simHistoryOpen && backendOnline && (
-          <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-3">
+          <div className="toolbar-glass bg-white/10 backdrop-blur rounded-xl px-4 py-3">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-white text-sm font-bold">📊 仿真历史记录</h3>
               <button
@@ -791,12 +921,12 @@ function App() {
           </div>
         )}
 
-        {/* ── 高级工具栏（阶段二 + 阶段三）────────────────────── */}
-        <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-4 flex-wrap">
+        {/* ── 工具栏（阶段二 + 阶段三）────────────────────── */}
+        <div className="toolbar-glass bg-white/10 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-4 flex-wrap">
           {/* 阶段二：仿真模式 */}
           <div className="flex items-center gap-2">
             <span className="text-slate-300 text-xs font-medium whitespace-nowrap">
-              仿真引擎:
+              计算方式:
             </span>
             <button
               onClick={() => setUseRemote(v => !v)}
@@ -807,7 +937,7 @@ function App() {
                   : 'bg-slate-700 text-slate-300'
               } disabled:opacity-40 disabled:cursor-not-allowed`}
             >
-              {useRemote ? '☁️ 云端 Python' : '💻 本地 TypeScript'}
+              {useRemote ? '云端计算' : '本地计算'}
             </button>
             {simLoading && (
               <span className="text-yellow-400 text-xs animate-pulse">计算中...</span>
@@ -824,10 +954,41 @@ function App() {
             )}
           </div>
 
+          <div className="flex items-center gap-2">
+            <span className="text-slate-300 text-xs font-medium whitespace-nowrap">
+              漂流小人:
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowDrifter(v => !v)}
+              className={`px-3 py-1 text-xs rounded-lg transition font-medium ${
+                showDrifter
+                  ? 'bg-cyan-500/75 text-white'
+                  : 'bg-slate-700 text-slate-300'
+              }`}
+              aria-pressed={showDrifter}
+            >
+              {showDrifter ? '显示中' : '已隐藏'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDrifterInteractive(v => !v)}
+              disabled={!showDrifter}
+              className={`px-3 py-1 text-xs rounded-lg transition font-medium disabled:opacity-40 disabled:cursor-not-allowed ${
+                showDrifter && drifterInteractive
+                  ? 'bg-emerald-500/75 text-white'
+                  : 'bg-slate-700 text-slate-300'
+              }`}
+              aria-pressed={drifterInteractive}
+            >
+              {drifterInteractive ? '可拖动探查' : '跟随漂流'}
+            </button>
+          </div>
+
           {/* 阶段三：多人协同 */}
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-slate-300 text-xs font-medium whitespace-nowrap">
-              多人协同:
+              一起观察:
             </span>
             {!wsMode ? (
               <button
@@ -835,7 +996,7 @@ function App() {
                 disabled={!backendOnline}
                 className="px-3 py-1 text-xs rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition disabled:opacity-40"
               >
-                👥 进入协同模式
+                进入协同模式
               </button>
             ) : (
               <div className="flex items-center gap-2">
@@ -876,20 +1037,37 @@ function App() {
           </div>
         </div>
 
-        <div className="flex gap-5 items-start">
-          {/* 左栏：参数控制 */}
-          <div className="w-64 shrink-0 flex flex-col gap-4">
+        <div className="main-grid flex gap-5 items-start">
+          {/* 左栏：调水况 */}
+          <div className="w-96 shrink-0 sticky top-5 max-h-[calc(100vh-2.5rem)] flex flex-col gap-4">
             <SegmentControlPanel
               segments={segments}
               onSegmentsChange={setSegments}
+              totalRiverLengthM={totalRiverLengthM}
+              setTotalRiverLengthM={setTotalRiverLengthM}
               light={light} setLight={setLight}
               catalyst={catalyst} setCatalyst={setCatalyst}
               depth={depth} setDepth={setDepth}
               turbidity={turbidity} setTurbidity={setTurbidity}
+              temperature={temperature} setTemperature={setTemperature}
               pollutantType={pollutantType} setPollutantType={setPollutantType}
+              pollutantMix={pollutantMix}
+              setPollutantMix={setPollutantMix}
+              customPollutants={customPollutants}
+              setCustomPollutants={setCustomPollutants}
+              pollutantDischarges={pollutantDischarges}
+              setPollutantDischarges={setPollutantDischarges}
               doseRatio={doseRatio} setDoseRatio={setDoseRatio}
               catalystPlacements={catalystPlacements}
               setCatalystPlacements={setCatalystPlacements}
+            />
+            <RiverObservationNote
+              light={light}
+              turbidity={turbidity}
+              temperature={temperature}
+              finalConcentration={finalConc}
+              pollutantType={pollutantType}
+              customPollutants={customPollutants}
             />
             {/* WebSocket 玩家列表 */}
             {wsConnected && players.length > 0 && (
@@ -933,43 +1111,48 @@ function App() {
           {/* 右栏：主视图 + 数据 */}
           <div className="flex-1 flex flex-col gap-4">
             {/* 顶部指标栏 */}
-            <div className="grid grid-cols-4 gap-3">
-              <div className="bg-white/10 text-white rounded-xl p-3 backdrop-blur">
-                <p className="text-xs text-slate-400">最佳投放段落</p>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <div className="metric-card">
+                <p className="text-xs text-slate-400">建议先处理这里</p>
                 <p className="text-2xl font-bold">段落 {(result?.optimalSegmentIndex ?? 0) + 1}</p>
               </div>
-              <div className="bg-white/10 text-white rounded-xl p-3 backdrop-blur">
-                <p className="text-xs text-slate-400">河流总段数</p>
+              <div className="metric-card">
+                <p className="text-xs text-slate-400">这条河的长度</p>
                 <p className="text-2xl font-bold">{segments.length} 段</p>
+                <p className="text-xs text-slate-400 mt-0.5">{(totalRiverLengthM / 1000).toFixed(1)} km</p>
               </div>
-              <div className={`rounded-xl p-3 backdrop-blur ${finalConc < 0.3 ? 'bg-emerald-500/30 text-emerald-200' : finalConc < 0.6 ? 'bg-yellow-500/30 text-yellow-200' : 'bg-red-500/30 text-red-200'}`}>
-                <p className="text-xs opacity-70">出水口残留污染物</p>
+              <div className="metric-card">
+                <p className="text-xs text-slate-400">今天水温</p>
+                <p className="text-2xl font-bold">{temperature.toFixed(0)}°C</p>
+              </div>
+              <div className={`metric-card ${finalConc < 0.3 ? 'text-emerald-200' : finalConc < 0.6 ? 'text-yellow-200' : 'text-red-200'}`}>
+                <p className="text-xs opacity-70">下游还剩多少污染</p>
                 <p className="text-2xl font-bold">{(finalConc * 100).toFixed(1)}%</p>
               </div>
               {/* 动画控制按钮 */}
-              <div className="bg-white/10 text-white rounded-xl p-3 backdrop-blur flex flex-col gap-2">
-                <p className="text-xs text-slate-400">动画控制</p>
+              <div className="metric-card flex flex-col gap-2">
+                <p className="text-xs text-slate-400">看水流变化</p>
                 <div className="flex gap-2">
                   <button
                     onClick={isRunning ? handlePause : handleStart}
-                    className={`flex-1 px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                    className={`sci-fi-button flex-1 px-2 py-1 rounded-lg text-xs font-bold transition-all ${
                       isRunning
                         ? 'bg-yellow-400/80 hover:bg-yellow-300 text-yellow-900'
                         : 'bg-emerald-500/80 hover:bg-emerald-400 text-white'
                     }`}
                   >
-                    {isRunning ? '⏸ 暂停' : animTime > 0 ? '▶ 继续' : '▶ 开始'}
+                    {isRunning ? '⏸ 暂停' : animTime >= ANIM_DURATION ? '▶ 重播' : animTime > 0 ? '▶ 继续' : '▶ 开始'}
                   </button>
                   <button
                     onClick={handleReset}
-                    className="flex-1 px-2 py-1 rounded-lg text-xs font-bold bg-slate-500/60 hover:bg-slate-400/60 text-white transition-all"
+                    className="sci-fi-button flex-1 px-2 py-1 rounded-lg text-xs font-bold bg-slate-500/60 hover:bg-slate-400/60 text-white transition-all"
                   >
                     ↺ 重置
                   </button>
                 </div>
                 <div className="w-full bg-white/10 rounded-full h-1.5">
                   <div
-                    className="bg-blue-400 h-1.5 rounded-full transition-all"
+                    className="bg-blue-400 h-1.5 rounded-full transition-all progress-neon"
                     style={{ width: `${animProgress * 100}%` }}
                   />
                 </div>
@@ -977,7 +1160,7 @@ function App() {
             </div>
 
             {/* 2D 仿真视图 */}
-            <div className="h-[340px]">
+            <div className="canvas-shell h-[340px]">
               <RiverCanvas
                 result={result as SimulationResultV3 | null}
                 gridWidth={GRID_W}
@@ -985,6 +1168,8 @@ function App() {
                 animProgress={animProgress}
                 catalystPlacements={effectivePlacements}
                 segments={segments}
+                showDrifter={showDrifter}
+                drifterInteractive={drifterInteractive}
               />
             </div>
 

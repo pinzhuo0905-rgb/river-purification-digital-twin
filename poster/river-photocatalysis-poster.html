@@ -1,0 +1,1658 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>河流光催化净化动态仿真系统海报</title>
+  <style>
+    :root {
+      --bg-top: #edf8ff;
+      --bg-mid: #f9fdff;
+      --bg-bottom: #edf9f3;
+      --glass: rgba(255, 255, 255, 0.58);
+      --glass-strong: rgba(255, 255, 255, 0.76);
+      --glass-soft: rgba(246, 252, 255, 0.46);
+      --stroke: rgba(255, 255, 255, 0.86);
+      --stroke-cool: rgba(90, 172, 255, 0.28);
+      --ink: #102033;
+      --muted: #61758a;
+      --faint: #8ba3b7;
+      --blue: #007aff;
+      --cyan: #32ade6;
+      --mint: #34c759;
+      --teal: #30d5c8;
+      --yellow: #ffcc00;
+      --orange: #ff9500;
+      --red: #ff3b30;
+      --purple: #af52de;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #dbeaf3;
+      color: var(--ink);
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    .poster {
+      width: 2480px;
+      height: 3508px;
+      margin: 0 auto;
+      padding: 128px;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 48%, var(--bg-bottom) 100%);
+    }
+
+    .poster::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(115deg, transparent 4%, rgba(0, 122, 255, 0.12) 19%, transparent 34%),
+        linear-gradient(70deg, transparent 58%, rgba(48, 213, 200, 0.15) 72%, transparent 89%),
+        repeating-linear-gradient(165deg, rgba(255,255,255,0.18) 0 2px, transparent 2px 54px);
+      opacity: 0.75;
+    }
+
+    .poster::after {
+      content: "";
+      position: absolute;
+      left: -9%;
+      right: -8%;
+      top: 22%;
+      height: 1480px;
+      pointer-events: none;
+      background:
+        linear-gradient(100deg, transparent 5%, rgba(50,173,230,0.16) 21%, rgba(52,199,89,0.12) 53%, transparent 87%);
+      transform: rotate(-6deg);
+      filter: blur(1px);
+      opacity: 0.82;
+    }
+
+    .tech-ornament {
+      position: absolute;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.72;
+    }
+
+    .ornament-grid {
+      width: 540px;
+      height: 280px;
+      right: 120px;
+      top: 1060px;
+      background:
+        linear-gradient(rgba(0,122,255,0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,122,255,0.14) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(circle at 50% 50%, #000, transparent 76%);
+      transform: rotate(-6deg);
+    }
+
+    .ornament-formula {
+      left: 118px;
+      top: 1860px;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 42px;
+      color: rgba(0,122,255,0.18);
+      transform: rotate(-8deg);
+      white-space: nowrap;
+    }
+
+    .ornament-particles {
+      right: 170px;
+      bottom: 420px;
+      width: 520px;
+      height: 240px;
+      background:
+        radial-gradient(circle at 12% 34%, rgba(255,59,48,0.35) 0 7px, transparent 8px),
+        radial-gradient(circle at 27% 58%, rgba(255,149,0,0.35) 0 5px, transparent 6px),
+        radial-gradient(circle at 43% 28%, rgba(255,204,0,0.35) 0 6px, transparent 7px),
+        radial-gradient(circle at 61% 64%, rgba(48,213,200,0.38) 0 7px, transparent 8px),
+        radial-gradient(circle at 79% 40%, rgba(0,122,255,0.35) 0 6px, transparent 7px);
+      filter: blur(0.2px);
+    }
+
+    .ornament-circuit {
+      left: 92px;
+      bottom: 710px;
+      width: 620px;
+      height: 360px;
+      background:
+        linear-gradient(90deg, transparent 0 15%, rgba(0,122,255,0.22) 15% 15.6%, transparent 15.6% 100%),
+        linear-gradient(0deg, transparent 0 28%, rgba(0,122,255,0.18) 28% 28.8%, transparent 28.8% 100%),
+        radial-gradient(circle at 15% 28%, rgba(0,122,255,0.32) 0 7px, transparent 8px),
+        radial-gradient(circle at 48% 28%, rgba(48,213,200,0.28) 0 6px, transparent 7px),
+        radial-gradient(circle at 48% 72%, rgba(52,199,89,0.25) 0 7px, transparent 8px),
+        radial-gradient(circle at 82% 72%, rgba(0,122,255,0.22) 0 6px, transparent 7px);
+      clip-path: polygon(0 18%, 45% 18%, 45% 63%, 82% 63%, 82% 82%, 100% 82%, 100% 100%, 0 100%);
+      transform: rotate(7deg);
+    }
+
+    .ornament-spectrum {
+      left: 920px;
+      top: 3140px;
+      width: 620px;
+      height: 70px;
+      border-radius: 999px;
+      background:
+        repeating-linear-gradient(90deg, rgba(16,32,51,0.12) 0 2px, transparent 2px 32px),
+        linear-gradient(90deg, rgba(255,59,48,0.22), rgba(255,204,0,0.20), rgba(48,213,200,0.22), rgba(0,122,255,0.20));
+      opacity: 0.36;
+      transform: rotate(-3deg);
+    }
+
+    .ornament-contours {
+      left: 1650px;
+      top: 1660px;
+      width: 520px;
+      height: 360px;
+      border-radius: 44% 56% 48% 52%;
+      background:
+        radial-gradient(ellipse at 50% 50%, transparent 0 22%, rgba(0,122,255,0.12) 22.5% 23%, transparent 23.5% 34%, rgba(0,122,255,0.10) 34.5% 35%, transparent 35.5% 48%, rgba(48,213,200,0.12) 48.5% 49%, transparent 49.5%),
+        radial-gradient(ellipse at 42% 54%, transparent 0 14%, rgba(52,199,89,0.10) 14.5% 15%, transparent 15.5%);
+      transform: rotate(12deg);
+    }
+
+    .panel-etch {
+      position: absolute;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.78;
+    }
+
+    .density-note {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.54);
+      border: 1px solid rgba(255,255,255,0.88);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.38;
+    }
+
+    .density-note b {
+      color: #102033;
+      font-size: 20px;
+    }
+
+    .etch-rings {
+      right: 410px;
+      top: 70px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, transparent 0 32%, rgba(0,122,255,0.12) 32.5% 33%, transparent 33.5% 48%, rgba(48,213,200,0.10) 48.5% 49%, transparent 49.5% 64%, rgba(0,122,255,0.08) 64.5% 65%, transparent 65.5%),
+        conic-gradient(from 20deg, transparent 0 16%, rgba(0,122,255,0.18) 16% 18%, transparent 18% 54%, rgba(52,199,89,0.16) 54% 56%, transparent 56%);
+    }
+
+    .etch-equations {
+      left: 820px;
+      top: 120px;
+      width: 560px;
+      height: 210px;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 24px;
+      line-height: 1.9;
+      color: rgba(16,32,51,0.16);
+      transform: rotate(-5deg);
+      white-space: pre;
+    }
+
+    .etch-circuit {
+      right: 54px;
+      bottom: 54px;
+      width: 680px;
+      height: 190px;
+      background:
+        linear-gradient(90deg, transparent 0 8%, rgba(0,122,255,0.20) 8% 8.5%, transparent 8.5% 100%),
+        linear-gradient(0deg, transparent 0 50%, rgba(48,213,200,0.18) 50% 51%, transparent 51%),
+        radial-gradient(circle at 8% 50%, rgba(0,122,255,0.28) 0 8px, transparent 9px),
+        radial-gradient(circle at 34% 50%, rgba(0,122,255,0.22) 0 7px, transparent 8px),
+        radial-gradient(circle at 68% 50%, rgba(52,199,89,0.22) 0 7px, transparent 8px),
+        radial-gradient(circle at 92% 50%, rgba(255,204,0,0.24) 0 8px, transparent 9px);
+      mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    }
+
+    .etch-molecule {
+      left: 74px;
+      bottom: 42px;
+      width: 300px;
+      height: 160px;
+      background:
+        radial-gradient(circle at 18% 52%, rgba(0,122,255,0.28) 0 12px, transparent 13px),
+        radial-gradient(circle at 48% 28%, rgba(48,213,200,0.26) 0 10px, transparent 11px),
+        radial-gradient(circle at 76% 58%, rgba(52,199,89,0.24) 0 11px, transparent 12px),
+        linear-gradient(28deg, transparent 0 24%, rgba(16,32,51,0.12) 24% 25%, transparent 25%),
+        linear-gradient(-18deg, transparent 0 51%, rgba(16,32,51,0.12) 51% 52%, transparent 52%);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 950px 950px 620px 648px;
+      gap: 28px;
+    }
+
+    .glass {
+      position: relative;
+      border: 1px solid var(--stroke);
+      border-radius: 28px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.88), rgba(255,255,255,0.50) 56%, rgba(236,248,255,0.45)),
+        var(--glass);
+      box-shadow:
+        0 36px 90px rgba(0, 122, 255, 0.13),
+        inset 0 1px 0 rgba(255,255,255,0.92),
+        inset 0 -1px 0 rgba(45, 118, 180, 0.08);
+      backdrop-filter: blur(14px) saturate(155%);
+      -webkit-backdrop-filter: blur(14px) saturate(155%);
+      overflow: hidden;
+    }
+
+    .glass::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(120deg, rgba(255,255,255,0.72), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.48), transparent 16%);
+      opacity: 0.75;
+    }
+
+    .glass::after {
+      content: "";
+      position: absolute;
+      inset: 26px;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 22px;
+      background:
+        linear-gradient(rgba(0,122,255,0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,122,255,0.045) 1px, transparent 1px),
+        radial-gradient(circle at 88% 16%, rgba(48,213,200,0.12), transparent 22%),
+        radial-gradient(circle at 12% 82%, rgba(0,122,255,0.09), transparent 24%);
+      background-size: 36px 36px, 36px 36px, auto, auto;
+      opacity: 0.72;
+      mask-image: linear-gradient(115deg, transparent, #000 18%, #000 82%, transparent);
+    }
+
+    .inner {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      padding: 44px;
+    }
+
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      width: max-content;
+      padding: 12px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.84);
+      background: rgba(255,255,255,0.58);
+      color: #176180;
+      font-size: 28px;
+      font-weight: 800;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.86);
+    }
+
+    .section-kicker i {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 0 8px rgba(50,173,230,0.12);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      margin-top: 32px;
+      font-size: 112px;
+      line-height: 1.04;
+      letter-spacing: 0;
+      max-width: 1180px;
+      color: #0b2135;
+    }
+
+    h2 {
+      margin-top: 24px;
+      font-size: 70px;
+      line-height: 1.12;
+      letter-spacing: 0;
+      color: #0f2538;
+    }
+
+    .lead {
+      margin-top: 22px;
+      max-width: 1120px;
+      font-size: 36px;
+      line-height: 1.42;
+      color: #405b70;
+    }
+
+    .project {
+      display: grid;
+      grid-template-columns: 1fr 900px;
+      gap: 58px;
+      align-items: stretch;
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.56);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.82);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 43px;
+      line-height: 1;
+      color: #006d9f;
+      margin-bottom: 8px;
+    }
+
+    .metric span {
+      display: block;
+      font-size: 21px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .project-note {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .note-card {
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.50);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.88);
+    }
+
+    .note-card b {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 6px;
+      color: #102033;
+    }
+
+    .note-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.34;
+    }
+
+    .system-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .system-step {
+      position: relative;
+      min-height: 78px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.54);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.86);
+    }
+
+    .system-step::after {
+      content: "";
+      position: absolute;
+      right: -16px;
+      top: 37px;
+      width: 20px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(0,122,255,0.45);
+    }
+
+    .system-step:last-child::after { display: none; }
+
+    .system-step b {
+      display: block;
+      font-size: 18px;
+      line-height: 1.16;
+      margin-bottom: 5px;
+      color: #102033;
+    }
+
+    .system-step span {
+      display: block;
+      font-size: 15px;
+      line-height: 1.32;
+      color: var(--muted);
+    }
+
+    .project-why {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .project-why .density-note {
+      min-height: 86px;
+      font-size: 16px;
+      line-height: 1.32;
+    }
+
+    .project-why .density-note b {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 4px;
+    }
+
+    .detail-lattice {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .detail-cell {
+      min-height: 76px;
+      padding: 10px 12px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.50);
+      border: 1px solid rgba(255,255,255,0.84);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.28;
+    }
+
+    .detail-cell b {
+      display: block;
+      color: #102033;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .device {
+      position: relative;
+      min-height: 650px;
+      border-radius: 34px;
+      padding: 22px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.9), rgba(217,239,250,0.45)),
+        rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.92);
+      box-shadow:
+        0 30px 70px rgba(0, 122, 255, 0.18),
+        inset 0 1px 0 rgba(255,255,255,0.92);
+    }
+
+    .device-screen {
+      position: relative;
+      height: 100%;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(16,32,51,0.18);
+      background: rgba(241,250,255,0.82);
+      display: grid;
+      grid-template-rows: 292px 1fr;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .hero-image {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(16,32,51,0.14);
+      background: #102033;
+    }
+
+    .hero-image img,
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .floating-caption {
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      bottom: 28px;
+      padding: 22px 26px;
+      border-radius: 20px;
+      color: #effcff;
+      font-size: 30px;
+      line-height: 1.34;
+      font-weight: 700;
+      background: rgba(10, 31, 45, 0.72);
+      backdrop-filter: blur(12px) saturate(150%);
+      -webkit-backdrop-filter: blur(12px) saturate(150%);
+    }
+
+    .device-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr 0.95fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .thumb {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(16,32,51,0.12);
+      background: rgba(255,255,255,0.72);
+    }
+
+    .thumb-label {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      color: #f5fcff;
+      font-size: 19px;
+      font-weight: 800;
+      background: rgba(8,31,45,0.68);
+    }
+
+    .quality-card {
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid rgba(255,255,255,0.88);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    .quality-card h3 {
+      font-size: 26px;
+      margin-bottom: 16px;
+    }
+
+    .quality-scale {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      height: 58px;
+      overflow: hidden;
+      border-radius: 16px;
+      margin-bottom: 14px;
+      color: white;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .quality-scale span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .quality-scale span:nth-child(1) { background: #26c281; }
+    .quality-scale span:nth-child(2) { background: #32ade6; }
+    .quality-scale span:nth-child(3) { background: #ffcc00; color: #594900; }
+    .quality-scale span:nth-child(4) { background: #ff9500; }
+    .quality-scale span:nth-child(5) { background: #ff3b30; }
+    .quality-scale span:nth-child(6) { background: #7c2431; }
+
+    .quality-card p {
+      font-size: 18px;
+      line-height: 1.36;
+      color: var(--muted);
+    }
+
+    .quality-card .mini-bars {
+      margin-top: 14px;
+    }
+
+    .thumb-grid-extra {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .micro-chip {
+      padding: 9px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.82);
+      color: #426075;
+      font-size: 15px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .algorithm .inner {
+      display: grid;
+      grid-template-columns: 670px 1fr;
+      gap: 42px;
+      align-items: center;
+    }
+
+    .algorithm .lead {
+      font-size: 31px;
+      line-height: 1.3;
+      margin-top: 18px;
+    }
+
+    .formula-notes {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 16px;
+      max-width: 580px;
+    }
+
+    .formula {
+      padding: 12px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.88);
+      background: rgba(255,255,255,0.62);
+      color: #15384d;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 24px;
+      line-height: 1.35;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .formula small {
+      display: block;
+      margin-top: 5px;
+      font-family: inherit;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .pollutant-stack {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+      margin-top: 12px;
+      max-width: 580px;
+    }
+
+    .method-notes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      max-width: 580px;
+    }
+
+    .method-note {
+      padding: 8px 10px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.50);
+      border: 1px solid rgba(255,255,255,0.86);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .method-note b {
+      display: block;
+      color: #102033;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .model-caption {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 580px;
+    }
+
+    .model-caption .density-note {
+      padding: 10px 12px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .model-caption b {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .law-matrix {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      max-width: 580px;
+    }
+
+    .law-matrix span {
+      padding: 8px 10px;
+      border-radius: 13px;
+      background: rgba(255,255,255,0.48);
+      border: 1px solid rgba(255,255,255,0.82);
+      color: #3d5d73;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .pollutant {
+      padding: 9px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.88);
+      background: rgba(255,255,255,0.54);
+    }
+
+    .pollutant b {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(0,122,255,0.12);
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--mint));
+    }
+
+    .river-flow {
+      position: relative;
+      height: 640px;
+      border-radius: 32px;
+      border: 1px solid rgba(255,255,255,0.84);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0.24)),
+        rgba(255,255,255,0.36);
+      overflow: hidden;
+    }
+
+    .slice-ruler {
+      position: absolute;
+      left: 52px;
+      right: 52px;
+      top: 38px;
+      height: 54px;
+      border-top: 2px solid rgba(0,122,255,0.22);
+      background: repeating-linear-gradient(90deg, rgba(0,122,255,0.24) 0 2px, transparent 2px 54px);
+      opacity: 0.76;
+    }
+
+    .slice-ruler::before {
+      content: "0m     250m     500m     750m     1000m";
+      position: absolute;
+      left: 0;
+      top: 18px;
+      color: rgba(16,32,51,0.34);
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    .slice-ruler::after {
+      content: "micro-slices / Δs";
+      position: absolute;
+      right: 0;
+      top: -34px;
+      color: rgba(16,32,51,0.42);
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 20px;
+    }
+
+    .light-fan {
+      position: absolute;
+      left: 180px;
+      top: 110px;
+      width: 700px;
+      height: 250px;
+      background:
+        linear-gradient(112deg, rgba(255,255,255,0.00) 10%, rgba(255,204,0,0.22) 31%, rgba(255,255,255,0.00) 43%),
+        linear-gradient(122deg, rgba(255,255,255,0.00) 20%, rgba(50,173,230,0.16) 41%, rgba(255,255,255,0.00) 55%);
+      transform: skewX(-8deg);
+      opacity: 0.82;
+    }
+
+    .particle-field {
+      position: absolute;
+      left: 96px;
+      right: 96px;
+      bottom: 72px;
+      height: 170px;
+      background:
+        radial-gradient(circle at 8% 65%, rgba(255,59,48,0.42) 0 5px, transparent 6px),
+        radial-gradient(circle at 17% 42%, rgba(255,149,0,0.34) 0 4px, transparent 5px),
+        radial-gradient(circle at 28% 76%, rgba(255,204,0,0.36) 0 4px, transparent 5px),
+        radial-gradient(circle at 46% 48%, rgba(48,213,200,0.34) 0 5px, transparent 6px),
+        radial-gradient(circle at 58% 72%, rgba(48,213,200,0.32) 0 4px, transparent 5px),
+        radial-gradient(circle at 76% 46%, rgba(0,122,255,0.30) 0 5px, transparent 6px),
+        radial-gradient(circle at 90% 66%, rgba(0,122,255,0.24) 0 4px, transparent 5px);
+      opacity: 0.88;
+    }
+
+    .section-label {
+      position: absolute;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.88);
+      color: rgba(16,32,51,0.58);
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .label-light { left: 130px; top: 130px; }
+    .label-particles { left: 98px; bottom: 46px; }
+    .label-pareto { right: 380px; bottom: 44px; }
+
+    .river-notes {
+      position: absolute;
+      left: 48px;
+      right: 48px;
+      bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .river-notes div {
+      padding: 9px 11px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.56);
+      border: 1px solid rgba(255,255,255,0.86);
+      color: #436175;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .river-band {
+      position: absolute;
+      left: -80px;
+      right: -80px;
+      top: 250px;
+      height: 132px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, var(--red), var(--orange) 22%, var(--yellow) 43%, var(--teal) 67%, var(--blue));
+      transform: rotate(-5deg);
+      box-shadow:
+        0 28px 70px rgba(50,173,230,0.28),
+        inset 0 18px 24px rgba(255,255,255,0.34),
+        inset 0 -18px 24px rgba(0,70,110,0.16);
+    }
+
+    .river-band::after {
+      content: "";
+      position: absolute;
+      inset: 24px 54px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.16), rgba(255,255,255,0.55), rgba(255,255,255,0.18));
+      opacity: 0.82;
+    }
+
+    .node {
+      position: absolute;
+      width: 250px;
+      min-height: 170px;
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.72);
+      box-shadow:
+        0 18px 42px rgba(0, 122, 255, 0.12),
+        inset 0 1px 0 rgba(255,255,255,0.92);
+    }
+
+    .node::before {
+      content: "";
+      display: block;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+      background: linear-gradient(180deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 0 12px rgba(50,173,230,0.15);
+    }
+
+    .node h3 {
+      font-size: 32px;
+      line-height: 1.16;
+      margin-bottom: 10px;
+      color: #102033;
+    }
+
+    .node p {
+      font-size: 24px;
+      line-height: 1.36;
+      color: var(--muted);
+    }
+
+    .n1 { left: 70px; top: 54px; }
+    .n2 { left: 350px; bottom: 52px; }
+    .n3 { left: 650px; top: 70px; }
+    .n4 { right: 350px; bottom: 52px; }
+    .n5 { right: 64px; top: 54px; }
+    .n4::before { background: linear-gradient(180deg, var(--yellow), var(--orange)); box-shadow: 0 0 0 12px rgba(255,149,0,0.13); }
+    .n5::before { background: linear-gradient(180deg, var(--mint), var(--teal)); box-shadow: 0 0 0 12px rgba(52,199,89,0.14); }
+
+    .mini-panel {
+      position: absolute;
+      right: 34px;
+      bottom: 30px;
+      width: 360px;
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.70);
+      box-shadow: 0 18px 42px rgba(0,122,255,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    .mini-panel h3 {
+      font-size: 25px;
+      margin-bottom: 16px;
+    }
+
+    .pareto {
+      height: 116px;
+      position: relative;
+      border-left: 3px solid rgba(16,32,51,0.18);
+      border-bottom: 3px solid rgba(16,32,51,0.18);
+    }
+
+    .pareto i {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--blue);
+      box-shadow: 0 0 0 8px rgba(0,122,255,0.12);
+    }
+
+    .pareto i:nth-child(1) { left: 35px; bottom: 20px; }
+    .pareto i:nth-child(2) { left: 95px; bottom: 45px; }
+    .pareto i:nth-child(3) { left: 160px; bottom: 68px; background: var(--mint); }
+    .pareto i:nth-child(4) { left: 228px; bottom: 78px; background: var(--yellow); }
+    .pareto::after {
+      content: "";
+      position: absolute;
+      left: 38px;
+      right: 52px;
+      bottom: 30px;
+      height: 54px;
+      border-top: 5px solid rgba(0,122,255,0.42);
+      transform: skewY(-12deg);
+    }
+
+    .vibe .inner {
+      display: grid;
+      grid-template-columns: 620px 1fr;
+      gap: 42px;
+      align-items: center;
+    }
+
+    .vibe-statement {
+      padding: 30px;
+      border-radius: 28px;
+      color: #effcff;
+      background:
+        linear-gradient(135deg, rgba(9, 38, 60, 0.92), rgba(0, 122, 255, 0.62)),
+        #12314a;
+      box-shadow: 0 26px 64px rgba(0, 122, 255, 0.18);
+    }
+
+    .vibe-shot {
+      margin-top: 16px;
+      height: 82px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.24);
+      background: rgba(255,255,255,0.10);
+    }
+
+    .vibe-shot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0.86;
+    }
+
+    .vibe-statement h3 {
+      font-size: 46px;
+      line-height: 1.12;
+      margin-bottom: 18px;
+    }
+
+    .vibe-statement p {
+      font-size: 28px;
+      line-height: 1.4;
+      color: #ddf5ff;
+    }
+
+    .vibe-chips {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .vibe-chip {
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #e9f9ff;
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 22px;
+      min-height: 292px;
+      align-items: stretch;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 86px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--blue), var(--cyan), var(--mint), var(--yellow));
+      opacity: 0.62;
+    }
+
+    .time-card {
+      position: relative;
+      z-index: 1;
+      padding: 20px 22px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.70);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.88);
+    }
+
+    .time-card b {
+      display: inline-flex;
+      width: 58px;
+      height: 58px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      margin-bottom: 44px;
+      color: white;
+      font-size: 27px;
+      background: linear-gradient(180deg, var(--blue), var(--cyan));
+      box-shadow: 0 0 0 12px rgba(0,122,255,0.12);
+    }
+
+    .time-card h3 {
+      font-size: 30px;
+      line-height: 1.18;
+      margin-bottom: 9px;
+    }
+
+    .time-card p {
+      font-size: 20px;
+      line-height: 1.28;
+      color: var(--muted);
+    }
+
+    .feedback-loop {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .vibe-summary {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .vibe-summary .density-note {
+      font-size: 16px;
+      line-height: 1.32;
+      padding: 11px 13px;
+    }
+
+    .proof-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .proof-board div {
+      min-height: 64px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.50);
+      border: 1px solid rgba(255,255,255,0.84);
+      color: #4c6679;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .proof-board b {
+      display: block;
+      color: #102033;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+
+    .loop-card {
+      padding: 9px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.85);
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.22;
+    }
+
+    .loop-card b {
+      display: block;
+      color: #102033;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .applications .inner {
+      display: grid;
+      grid-template-columns: 560px 1fr;
+      gap: 42px;
+      align-items: stretch;
+    }
+
+    .use-case-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+      max-width: 500px;
+    }
+
+    .impact-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .impact-strip .density-note {
+      padding: 8px 11px;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .scenario-grid span {
+      padding: 7px 10px;
+      border-radius: 13px;
+      background: rgba(255,255,255,0.50);
+      border: 1px solid rgba(255,255,255,0.82);
+      color: #47677a;
+      font-size: 13px;
+      line-height: 1.16;
+      font-weight: 700;
+    }
+
+    .use-case-list div {
+      padding: 11px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.52);
+      border: 1px solid rgba(255,255,255,0.86);
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.24;
+    }
+
+    .use-case-list b {
+      color: #102033;
+      margin-right: 8px;
+    }
+
+    .applications h2 {
+      font-size: 62px;
+    }
+
+    .applications .lead {
+      font-size: 32px;
+      line-height: 1.36;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .application-board {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .application-board .impact-strip {
+      margin-top: 0;
+    }
+
+    .application-board .scenario-grid {
+      margin-top: 9px;
+    }
+
+    .app-card {
+      min-height: 340px;
+      padding: 30px;
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.92);
+      background: rgba(255,255,255,0.70);
+      box-shadow:
+        0 20px 50px rgba(0,122,255,0.11),
+        inset 0 1px 0 rgba(255,255,255,0.92);
+    }
+
+    .app-icon {
+      width: 74px;
+      height: 74px;
+      margin-bottom: 22px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 38px;
+      font-weight: 900;
+      background: linear-gradient(180deg, var(--cyan), var(--blue));
+      box-shadow: 0 16px 34px rgba(0,122,255,0.18);
+    }
+
+    .app-card:nth-child(2) .app-icon { background: linear-gradient(180deg, var(--mint), var(--teal)); }
+    .app-card:nth-child(3) .app-icon { background: linear-gradient(180deg, var(--yellow), var(--orange)); }
+
+    .app-card h3 {
+      font-size: 40px;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+
+    .app-card p {
+      font-size: 23px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .app-card small {
+      display: block;
+      margin-top: 12px;
+      color: #506b7e;
+      font-size: 19px;
+      line-height: 1.3;
+    }
+
+    .app-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .app-tags span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,122,255,0.09);
+      color: #245a77;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .mini-bars {
+      display: grid;
+      gap: 9px;
+      margin-top: 20px;
+    }
+
+    .mini-bars i {
+      display: block;
+      height: 10px;
+      width: var(--w);
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan), var(--mint));
+      opacity: 0.8;
+    }
+
+    .footer-note {
+      position: absolute;
+      left: 128px;
+      right: 128px;
+      bottom: 54px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--faint);
+      font-size: 24px;
+      z-index: 2;
+    }
+
+    @page {
+      size: 2480px 3508px;
+      margin: 0;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .poster { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="poster">
+    <div class="tech-ornament ornament-grid"></div>
+    <div class="tech-ornament ornament-formula">dC/dt = -kC · I(d) · dose</div>
+    <div class="tech-ornament ornament-particles"></div>
+    <div class="tech-ornament ornament-circuit"></div>
+    <div class="tech-ornament ornament-spectrum"></div>
+    <div class="tech-ornament ornament-contours"></div>
+    <div class="content">
+      <section class="glass project">
+        <div class="panel-etch etch-rings"></div>
+        <div class="inner hero-copy">
+          <div>
+            <div class="section-kicker"><i></i>项目介绍</div>
+            <h1>一条会计算的河，<br>怎样自己变清？</h1>
+            <p class="lead">
+              基于微积分切片与指数衰减模型，把光照、浊度、流速、污染物和投药策略映射进一条可交互的数字孪生河流。
+            </p>
+            <div class="project-note">
+              <div class="note-card"><b>它在模拟什么？</b><span>把不可见的光催化反应，转成可观察、可比较、可优化的沿程变化。</span></div>
+              <div class="note-card"><b>它解决什么？</b><span>先在虚拟河流里试错，再讨论真实投药位置、剂量和达标风险。</span></div>
+            </div>
+          </div>
+          <div class="metric-row">
+            <div class="metric"><strong>200</strong><span>微元切片，逐段积分</span></div>
+            <div class="metric"><strong>6 类</strong><span>覆盖典型复合污染物</span></div>
+            <div class="metric"><strong>双引擎</strong><span>浏览器实时 + 后端批量推演</span></div>
+          </div>
+          <div class="system-strip">
+            <div class="system-step"><b>输入环境</b><span>光照、水深、浊度、流速</span></div>
+            <div class="system-step"><b>物理推演</b><span>切片积分与指数衰减</span></div>
+            <div class="system-step"><b>标准判定</b><span>GB3838 六级水质</span></div>
+            <div class="system-step"><b>策略输出</b><span>推荐投药位置和剂量</span></div>
+          </div>
+          <div class="project-why">
+            <div class="density-note"><b>为什么需要仿真</b>真实河流不能随意试错，数字沙盘先承受风险。</div>
+            <div class="density-note"><b>为什么要切片</b>河宽、水深、流速沿程变化，整条河不能只用一个平均值。</div>
+            <div class="density-note"><b>为什么能解释</b>每个输出都能追溯到光强、浊度、反应速率和投药点。</div>
+          </div>
+          <div class="detail-lattice">
+            <div class="detail-cell"><b>输入层</b>光照、温度、河宽、水深、排污位置。</div>
+            <div class="detail-cell"><b>计算层</b>连续性方程、指数中点法、动态 NTU。</div>
+            <div class="detail-cell"><b>展示层</b>河道颜色、曲线、等级、投药建议同步更新。</div>
+            <div class="detail-cell"><b>决策层</b>比较不同方案的达标概率与边际收益。</div>
+          </div>
+        </div>
+        <div class="inner">
+          <div class="device">
+            <div class="device-screen">
+              <div class="hero-image">
+                <img src="../presentation/assets/screenshots/river.png" alt="河流仿真界面截图" />
+                <div class="floating-caption">不是播放动画，而是每一段河流都在重新计算净化过程。</div>
+              </div>
+              <div class="device-dashboard">
+                <div class="thumb">
+                  <img src="../presentation/assets/screenshots/chart.png" alt="仿真曲线截图" />
+                  <div class="thumb-label">浓度 / 浊度 / 河宽同步遥测</div>
+                </div>
+                <div class="thumb">
+                  <img src="../presentation/assets/screenshots/dosing.png" alt="投药策略截图" />
+                  <div class="thumb-label">投药点与剂量策略</div>
+                </div>
+                <div class="quality-card">
+                  <h3>水质结果一眼读懂</h3>
+                  <div class="quality-scale">
+                    <span>I</span><span>II</span><span>III</span><span>IV</span><span>V</span><span>劣V</span>
+                  </div>
+                  <p>仿真结果不是只给数字，而是转成可讨论的水质等级和达标状态。</p>
+                  <div class="mini-bars"><i style="--w:78%"></i><i style="--w:58%"></i><i style="--w:86%"></i></div>
+                  <div class="thumb-grid-extra">
+                    <div class="micro-chip">出口浓度</div>
+                    <div class="micro-chip">WQI 指数</div>
+                    <div class="micro-chip">投药建议</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass algorithm">
+        <div class="panel-etch etch-equations">∫ C(x) dx
+α = α0 + β·NTU
+Q = v · A
+Pareto: cost ↔ purity</div>
+        <div class="inner">
+          <div>
+            <div class="section-kicker"><i></i>算法</div>
+            <h2>把复杂模型，<br>变成算法河流</h2>
+            <p class="lead">
+              少讲推导，多看直觉：河流被切片，光线被浊度削弱，污染随反应指数下降，最后由优化算法寻找更省的投药点。
+            </p>
+            <div class="formula-notes">
+              <div class="formula">C(t)=C0·e^(-k·t)<small>污染浓度按反应速率逐步衰减</small></div>
+              <div class="formula">I=I0·e^(-α·d)<small>浊度与水深让光强指数变弱</small></div>
+            </div>
+            <div class="pollutant-stack">
+              <div class="pollutant"><b>泥沙水藻：强遮光</b><div class="bar"><i style="--w:92%"></i></div></div>
+              <div class="pollutant"><b>重金属：难自然降解</b><div class="bar"><i style="--w:28%"></i></div></div>
+              <div class="pollutant"><b>石油烃：油膜折光</b><div class="bar"><i style="--w:68%"></i></div></div>
+              <div class="pollutant"><b>微塑料：低浊高稳定</b><div class="bar"><i style="--w:42%"></i></div></div>
+            </div>
+            <div class="method-notes">
+              <div class="method-note"><b>中点重估</b>避免强反应下数值过冲。</div>
+              <div class="method-note"><b>浊度闭环</b>污染越高越遮光，形成阈值。</div>
+              <div class="method-note"><b>水质映射</b>把残余浓度转为 GB3838 等级。</div>
+            </div>
+            <div class="model-caption">
+              <div class="density-note"><b>反应不是线性扣分</b>浓度越低，剩余污染继续下降的速度也会变化。</div>
+              <div class="density-note"><b>投药不是越多越好</b>系统关注“多花一份药还能换来多少净化”。</div>
+            </div>
+            <div class="law-matrix">
+              <span>流速-时间映射：t=s/v</span>
+              <span>连续性方程：Q=vA</span>
+              <span>浊度反馈：NTU 随浓度变化</span>
+              <span>合流守恒：按流量加权混合</span>
+            </div>
+          </div>
+          <div class="river-flow">
+            <div class="slice-ruler"></div>
+            <div class="light-fan"></div>
+            <div class="particle-field"></div>
+            <div class="section-label label-light">Lambert-Beer 光束</div>
+            <div class="section-label label-particles">污染粒子 → 浓度场</div>
+            <div class="section-label label-pareto">Pareto frontier</div>
+            <div class="river-band"></div>
+            <div class="node n1"><h3>切片</h3><p>连续河流拆成可计算小段</p></div>
+            <div class="node n2"><h3>光衰减</h3><p>浑水挡光，催化效率降低</p></div>
+            <div class="node n3"><h3>指数净化</h3><p>浓度随反应不断下降</p></div>
+            <div class="node n4"><h3>反馈阈值</h3><p>变清后更多光进入，净化加速</p></div>
+            <div class="node n5"><h3>智能投药</h3><p>寻找少投药也达标的位置</p></div>
+            <div class="mini-panel">
+              <h3>帕累托直觉：更省药 vs 更干净</h3>
+              <div class="pareto"><i></i><i></i><i></i><i></i></div>
+            </div>
+            <div class="river-notes">
+              <div>红段：污染高，光遮蔽强</div>
+              <div>黄段：跨过浊度阈值</div>
+              <div>青段：光进入更深水层</div>
+              <div>蓝段：出口浓度接近达标</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass vibe">
+        <div class="panel-etch etch-circuit"></div>
+        <div class="inner">
+          <div class="vibe-statement">
+            <h3>Vibe Coding 不是偷懒，是快速把想法变成可验证系统。</h3>
+            <p>AI 负责加速搭建，人负责提出问题、校验模型、修正审美和判断结果是否可信。</p>
+            <div class="vibe-chips">
+              <div class="vibe-chip">Prompt → 原型</div>
+              <div class="vibe-chip">测试 → 纠错</div>
+              <div class="vibe-chip">截图 → 审美</div>
+              <div class="vibe-chip">论文 → 可信</div>
+            </div>
+            <div class="vibe-shot">
+              <img src="../presentation/assets/slides/slide-04.png" alt="Vibe Coding 演示页缩略图" />
+            </div>
+          </div>
+          <div>
+            <div class="section-kicker"><i></i>Vibe Coding</div>
+            <div class="timeline">
+              <div class="time-card"><b>1</b><h3>一个模糊想法</h3><p>想把河流净化做成能看、能调、能解释的仿真。</p></div>
+              <div class="time-card"><b>2</b><h3>AI 搭出原型</h3><p>先生成界面、组件、算法骨架和数据流。</p></div>
+              <div class="time-card"><b>3</b><h3>论文测试纠偏</h3><p>用物理公式、论文逻辑和测试结果不断修正。</p></div>
+              <div class="time-card"><b>4</b><h3>迭代成系统</h3><p>形成 v4 仿真引擎、优化算法和可展示界面。</p></div>
+            </div>
+            <div class="feedback-loop">
+              <div class="loop-card"><b>人提出方向</b>什么现象要解释，哪里必须符合学科逻辑。</div>
+              <div class="loop-card"><b>AI 加速实现</b>快速生成代码、界面、测试与可视化草稿。</div>
+              <div class="loop-card"><b>再用结果校验</b>跑起来、看截图、读曲线，继续修正。</div>
+            </div>
+            <div class="vibe-summary">
+              <div class="density-note"><b>真实工作流</b>不是一次生成完，而是“提出感觉 → 运行 → 看问题 → 再修”。</div>
+              <div class="density-note"><b>质量边界</b>AI 负责速度，人负责可信度、审美和学科判断。</div>
+            </div>
+            <div class="proof-board">
+              <div><b>论文校准</b>把模型回到物理机制。</div>
+              <div><b>单元测试</b>防止优化和水质分类跑偏。</div>
+              <div><b>截图验收</b>检查可视化是否讲得明白。</div>
+              <div><b>反复压缩</b>把复杂内容整理成展板语言。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass applications">
+        <div class="panel-etch etch-molecule"></div>
+        <div class="inner">
+          <div>
+            <div class="section-kicker"><i></i>现实应用</div>
+            <h2>从课堂解释，<br>到治理前的数字沙盘</h2>
+            <p class="lead">用更少试错，理解复杂水环境：先在虚拟河流里观察、验证、比较，再讨论现实方案。</p>
+            <div class="use-case-list">
+              <div><b>课堂上</b>用同一条河讲清“切片、衰减、优化”。</div>
+              <div><b>方案前</b>先比较不同投药点的成本和达标效果。</div>
+              <div><b>研究中</b>复现实验室难以快速搭建的极端水文场景。</div>
+            </div>
+          </div>
+          <div class="application-board">
+            <div class="app-grid">
+              <div class="app-card">
+                <div class="app-icon">T</div>
+                <h3>教学</h3>
+                <p>把微积分、化学动力学和优化思想变成可视化实验。</p>
+                <small>学生先看河水颜色和曲线变化，再回到公式理解模型。</small>
+                <div class="app-tags"><span>微积分</span><span>指数衰减</span><span>运筹优化</span></div>
+                <div class="mini-bars"><i style="--w:72%"></i><i style="--w:56%"></i><i style="--w:88%"></i></div>
+              </div>
+              <div class="app-card">
+                <div class="app-icon">G</div>
+                <h3>治理</h3>
+                <p>辅助判断哪里投药、投多少、最终是否达到水质标准。</p>
+                <small>把“凭经验试投”变成“先推演，再选择”。</small>
+                <div class="app-tags"><span>投药位置</span><span>成本权衡</span><span>达标判断</span></div>
+                <div class="mini-bars"><i style="--w:84%"></i><i style="--w:62%"></i><i style="--w:70%"></i></div>
+              </div>
+              <div class="app-card">
+                <div class="app-icon">R</div>
+                <h3>科研</h3>
+                <p>在数字孪生沙盘里验证极端水文和多污染物场景。</p>
+                <small>可快速比较暴雨、高浊度、低温、缓流等复杂边界。</small>
+                <div class="app-tags"><span>极端水文</span><span>多污染物</span><span>参数扫描</span></div>
+                <div class="mini-bars"><i style="--w:64%"></i><i style="--w:92%"></i><i style="--w:76%"></i></div>
+              </div>
+            </div>
+            <div class="impact-strip">
+              <div class="density-note"><b>少试错</b>先用模型排除明显无效方案。</div>
+              <div class="density-note"><b>可解释</b>每条曲线对应一个物理因素。</div>
+              <div class="density-note"><b>可复盘</b>保留输入、过程和输出快照。</div>
+            </div>
+            <div class="scenario-grid">
+              <span>暴雨高浊度：优先沉降/预处理</span>
+              <span>晴天缓流：光催化效果上限</span>
+              <span>工业废水：多点投药权衡</span>
+              <span>低温低光：反应速率受抑制</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="footer-note">
+      <span>基于论文与项目源码整理</span>
+      <span>A3 竖版 · iOS 26 Liquid Glass 风格</span>
+    </div>
+  </main>
+</body>
+</html>

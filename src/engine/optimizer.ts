@@ -76,6 +76,20 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
 }
 
+function dosingKey(point: Pick<DosingPoint, 'segmentIndex' | 'positionRatio'>): string {
+  return `${point.segmentIndex}:${Math.round(point.positionRatio * 1000)}`;
+}
+
+function hasDuplicatePosition(points: DosingPoint[]): boolean {
+  const seen = new Set<string>();
+  for (const point of points) {
+    const key = dosingKey(point);
+    if (seen.has(key)) return true;
+    seen.add(key);
+  }
+  return false;
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  网格搜索：在已有 N-1 个点基础上，搜索第 N 个最优投药点
 // ═══════════════════════════════════════════════════════════════
@@ -98,6 +112,7 @@ function gridSearchBestNewPoint(
       for (const act of ACTIVITY_CANDIDATES) {
         for (const dose of DOSE_CANDIDATES) {
           const candidate: DosingPoint = { segmentIndex: seg, positionRatio: pos, activity: act, doseRatio: dose };
+          if (existingPoints.some(p => dosingKey(p) === dosingKey(candidate))) continue;
           const conc = evaluate(params, [...existingPoints, candidate])
             .segmentOutConcentrations.slice(-1)[0] ?? 1;
           if (conc < bestConc) {
@@ -150,12 +165,22 @@ function nelderMeadRefine(
   // 将向量解包为 DosingPoint[]，钳位到合法范围
   function unpack(v: number[]): DosingPoint[] {
     const pts: DosingPoint[] = [];
+    const used = new Set<string>();
     for (let i = 0; i < N; i++) {
       const base = i * 4;
       const segIdx = clamp(Math.round(v[base] * (M - 1)), 0, M - 1);
+      let positionRatio = clamp(v[base + 1], 0, 1);
+      let key = dosingKey({ segmentIndex: segIdx, positionRatio });
+      let guard = 0;
+      while (used.has(key) && guard < 8) {
+        positionRatio = clamp(positionRatio + 0.037 * (guard + 1), 0, 1);
+        key = dosingKey({ segmentIndex: segIdx, positionRatio });
+        guard++;
+      }
+      used.add(key);
       pts.push({
         segmentIndex: segIdx,
-        positionRatio: clamp(v[base + 1], 0, 1),
+        positionRatio,
         activity: clamp(v[base + 2], 0.01, 1),
         doseRatio: clamp(v[base + 3] * 10, 0.01, 10),
       });
@@ -165,15 +190,16 @@ function nelderMeadRefine(
 
   function objVec(v: number[]): number {
     const pts = unpack(v);
+    if (hasDuplicatePosition(pts)) return 1e3;
     const r = evaluate(params, pts);
     return r.segmentOutConcentrations.slice(-1)[0] ?? 1;
   }
 
-  // 标准 Nelder-Mead 常量
+  // 自适应 Nelder-Mead 常量（Gao-Han 风格），高维多投药点时收缩更稳。
   const alpha = 1.0; // 反射
-  const gamma = 2.0; // 扩张
-  const rho = 0.5; // 收缩
-  const sigma = 0.5; // 缩小
+  const gamma = 1 + 2 / dim; // 扩张
+  const rho = 0.75 - 0.5 / dim; // 收缩
+  const sigma = 1 - 1 / dim; // 缩小
 
   // 初始化单纯形：dim+1 个顶点
   const vertices: number[][] = [];
@@ -181,7 +207,7 @@ function nelderMeadRefine(
   for (let i = 0; i < dim; i++) {
     const v = pack(initial);
     // 在维度 i 上加一个小扰动
-    v[i] = clamp(v[i] + 0.1 * (Math.random() - 0.5) * 2, 0, 1);
+    v[i] = clamp(v[i] + 0.08 * (i % 2 === 0 ? 1 : -1), 0, 1);
     vertices.push(v);
   }
 
@@ -272,7 +298,7 @@ function nelderMeadRefine(
 
 export function optimizeDosing(request: OptimizationRequest): OptimizationResult {
   const { params, maxDosingPoints, positionGridSize } = request;
-  const { pollutantType } = params;
+  const pollutantType = params.pollutantType ?? 'organic_macromolecule';
 
   // 基线：无催化剂
   const baseResult = evaluate(params, []);

@@ -1,0 +1,583 @@
+{
+  "deck_name": "liquid_glass_river_ppt",
+  "language": "Chinese",
+  "goal": "生成一份 22 页苹果 Liquid Glass 高科技学术答辩 PPT，介绍基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序，并融合论文中的理论、方法、实验与工程价值。",
+  "selected_image_backend": "built-in image tool",
+  "max_concurrent_slides": 6,
+  "sample_generation_method": {
+    "backend_used": "built-in image tool",
+    "tool_name": "image_gen",
+    "mode": "generate",
+    "prompt_source": "manual approved sample prompt for Slide 10 光照与浊度",
+    "size": "16:9 landscape, built-in default",
+    "quality": "built-in default",
+    "approved_sample_path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+    "input_context_preparation": "local required images inspected with view_image before built-in generation; approved sample slide inspected with view_image",
+    "handoff_rule": "Use this same built-in image generation tool and generate mode; return a blocker if unavailable."
+  },
+  "approved_style_reference": {
+    "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+    "role": "approved sample slide style reference",
+    "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+  },
+  "style": {
+    "name": "Apple Liquid Glass 河流数字孪生学术高科技风",
+    "visual_direction": "明亮浅色水雾背景，苹果式半透明玻璃面板，柔和折射高光，蓝绿数据流，河流数字孪生、光催化粒子、学术公式和精密 HUD 结合；酷炫但不黑暗赛博。",
+    "color_palette": "misty blue-white #eef7ff / #f8fbff, Apple blue #007aff, cyan #32ade6, teal #30d5c8, mint #34c759, warning amber #ffcc00, pollution red only for risk states.",
+    "typography": "大标题使用干净有力的中文无衬线字形气质，深墨色文字，高字重；公式与数字用现代科技感数字字体；所有中文必须清晰、准确、无乱码。",
+    "texture_and_finish": "frosted glass, subtle inner highlights, soft blue shadow, thin white strokes, translucent cards, light depth, water mist and refraction.",
+    "deck_consistency": "所有页面保持相同调性、色彩、玻璃质感和科技水域语言，但按 cover、section divider、concept、formula、architecture、evidence、timeline、summary 等角色改变布局。"
+  },
+  "deck_context": {
+    "source_summary": "本项目是一个河流光催化净化数字孪生系统，基于微积分切片、指数衰减、朗伯-比尔光衰减、动态 NTU 浊度反馈、流体连续性、GB 3838-2002 水质判定和帕累托优化，提供交互式河道仿真、投药策略优化和水质达标分析。",
+    "core_claim": "复杂河流治理可以先在数字孪生沙盘中被观察、计算和优化，从而把凭经验投药转化为可解释的模型决策。",
+    "canonical_terms": [
+      "微积分切片",
+      "指数衰减模型",
+      "朗伯-比尔定律",
+      "动态 NTU 正反馈",
+      "GB 3838-2002",
+      "帕累托前沿",
+      "Nelder-Mead",
+      "Vibe Coding",
+      "数字孪生"
+    ],
+    "paper_facts": [
+      "论文提出二阶指数中点法以减少高活性催化剂下的数值过冲。",
+      "论文强调动态浊度正反馈会造成光遮蔽和浊度锁定效应。",
+      "系统支持六种污染物：大分子有机物、泥沙水藻、重金属离子、石油烃类、氮磷富营养化、微塑料。",
+      "前端 TypeScript v4 与后端 Python v4 仿真引擎功能对等。",
+      "RiverCanvas 使用 11 层渲染管线表达浓度场、波纹、催化剂信标和图例。",
+      "苏州河工业废水场景中，N=3 逼近 I 类水阈值，N=5 的边际收益明显下降。"
+    ]
+  },
+  "slides": [
+    {
+      "number": 1,
+      "title": "河流光催化净化动态仿真程序",
+      "role": "cover",
+      "intent": "建立项目主题和高科技学术气质。",
+      "key_points": [
+        "微积分切片 × 指数衰减模型",
+        "光催化净化数字孪生",
+        "模拟、优化、可视化一体化"
+      ],
+      "layout": {
+        "composition": "全屏清晨河面与数据流背景，中央大型玻璃标题层，下方小型关键词胶囊横排。",
+        "content_zones": "顶部留白，中央标题，底部关键词与副标题。",
+        "spacing": "标题必须大而清晰，周围留出呼吸感。"
+      },
+      "visual_elements": {
+        "main_visual": "清澈河流俯视视角，蓝绿数据粒子沿河流运动，阳光穿透水面，远处有半透明数字孪生网格。",
+        "supporting_elements": "微小光催化粒子、淡淡公式符号、玻璃折射边框。"
+      },
+      "constraints": [
+        "不要出现页码。",
+        "不要添加无关 logo。",
+        "项目名必须完整准确。"
+      ]
+    },
+    {
+      "number": 2,
+      "title": "01 做项目的原因",
+      "role": "section divider",
+      "intent": "进入项目动机章节。",
+      "key_points": [
+        "污染治理不能只靠经验",
+        "投药位置、剂量、光照与流速需要一起计算",
+        "先在数字河流中验证方案"
+      ],
+      "layout": {
+        "composition": "大号章节编号与标题居左，右侧一条从污染红橙渐变到清澈蓝绿的透明河流。",
+        "content_zones": "左侧文字，右侧视觉河道，底部一行章节引导语。",
+        "spacing": "章节标题页文字稀疏，画面高级。"
+      },
+      "visual_elements": {
+        "main_visual": "半透明河流带，前端浑浊、后端清澈，漂浮少量参数标签。",
+        "supporting_elements": "柔和网格、玻璃章节卡、微弱光线。"
+      },
+      "constraints": ["保持标题页简洁，不堆叠大量正文。"]
+    },
+    {
+      "number": 3,
+      "title": "为什么做这个项目：河流治理不是凭感觉就够了",
+      "role": "problem",
+      "intent": "说明现实痛点和项目必要性。",
+      "key_points": [
+        "复合微污染压力：有机物、重金属、微塑料等同时出现",
+        "真实河流里，流速、河宽、水深、光照、浊度共同影响净化效率",
+        "经验投药可能过量、位置不准、成本高，且效果不可预估",
+        "我们的目标：把治理决策变成可调参数、可视化反馈和优化建议"
+      ],
+      "layout": {
+        "composition": "左侧真实河道问题场景，右侧五个玻璃变量卡片形成决策难题矩阵。",
+        "content_zones": "左图右文；右侧卡片分两列。",
+        "spacing": "卡片之间留 16px 以上视觉间距。"
+      },
+      "visual_elements": {
+        "main_visual": "浑浊河流、排污点、太阳光被削弱、流速箭头混杂。",
+        "supporting_elements": "变量卡：位置、剂量、光照、流速、浊度。"
+      },
+      "constraints": ["污染红只用于强调风险，整体仍保持浅色玻璃风。"]
+    },
+    {
+      "number": 4,
+      "title": "我们的答案：模拟 + 优化 + 可视化",
+      "role": "solution overview",
+      "intent": "展示系统的整体解决路径。",
+      "key_points": [
+        "全栈式河流光催化净化数字孪生系统",
+        "输入河段、污染物、光照、浊度、催化剂参数",
+        "输出浓度变化、最佳投放点、水质等级与优化方案",
+        "用帕累托前沿回答更少投药与更好净化的权衡"
+      ],
+      "layout": {
+        "composition": "三层架构从左到右流动：输入参数 → 仿真引擎 → 决策输出。",
+        "content_zones": "每层一个大玻璃模块，中间用发光数据流连接。",
+        "spacing": "使用对称横向流程，避免拥挤。"
+      },
+      "visual_elements": {
+        "main_visual": "数字孪生管线图。",
+        "supporting_elements": "小图标：滑块、河道、公式、图表、达标徽章。"
+      },
+      "constraints": ["不要把流程画成传统厚重商务风，保持 Apple 玻璃轻盈感。"]
+    },
+    {
+      "number": 5,
+      "title": "项目全景：从河道到决策控制台",
+      "role": "product snapshot",
+      "intent": "用真实程序截图证明项目已经落地。",
+      "key_points": [
+        "河道画布提供空间直觉",
+        "Dashboard 展示浓度、NTU、水质与优化结果",
+        "控制面板负责参数调节与实验设计",
+        "这是一套可交互工具，不是静态公式页"
+      ],
+      "required_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/river.png",
+          "role": "strict input asset and main product screenshot",
+          "fidelity": "preserve UI content, Chinese labels, proportions, and screenshot details; do not redraw or replace the interface"
+        }
+      ],
+      "layout": {
+        "composition": "主截图占画面 70%，置于大玻璃框内；四个细线 callout 标签指向河道、投药点、水质标签和出口。",
+        "content_zones": "左上标题，中央截图，右侧或底部注释标签。",
+        "spacing": "截图必须足够大，周围注释不能遮挡关键 UI。"
+      },
+      "visual_elements": {
+        "main_visual": "嵌入真实程序河道截图。",
+        "supporting_elements": "玻璃批注线、圆形放大镜、轻微蓝绿光晕。"
+      },
+      "source_image_rules": "Use the supplied screenshot as strict evidence; do not synthesize a similar interface."
+    },
+    {
+      "number": 6,
+      "title": "02 需要理解项目的背景知识",
+      "role": "section divider",
+      "intent": "进入学科背景章节。",
+      "key_points": [
+        "高数、化学、物理、环境科学和计算机共同支撑",
+        "先建立直觉，再看公式，最后连到程序实现",
+        "每个模型都对应程序里的一个计算环节"
+      ],
+      "layout": {
+        "composition": "大号章节编号居中偏左，五个学科节点围绕中央河流数字孪生核心。",
+        "content_zones": "中央视觉为主，文字简洁。",
+        "spacing": "节点均匀分布，连线轻薄。"
+      },
+      "visual_elements": {
+        "main_visual": "五个半透明学科节点：高数、化学、物理、环境科学、计算机。",
+        "supporting_elements": "空间 UI 连线、蓝绿河流核心、微小公式。"
+      },
+      "constraints": ["章节页不要写太多正文。"]
+    },
+    {
+      "number": 7,
+      "title": "背景知识地图：这不是单一学科问题",
+      "role": "knowledge map",
+      "intent": "建立跨学科知识全景。",
+      "key_points": [
+        "高数：微元法、积分思想、沿程积分",
+        "化学：半导体光催化、一级反应动力学、羟基自由基氧化",
+        "物理：朗伯-比尔光衰减、停留时间、流体连续性",
+        "环境科学：GB 3838-2002、水质等级、达标判定",
+        "计算机：数字孪生、Canvas 可视化、前后端双引擎、优化算法"
+      ],
+      "layout": {
+        "composition": "放射状知识图谱，中央为河流数字孪生核心，五个学科节点环绕。",
+        "content_zones": "中央图谱，外围短标签。",
+        "spacing": "每个节点最多 2 行文字，避免挤压。"
+      },
+      "visual_elements": {
+        "main_visual": "Apple Vision 风格空间知识图谱。",
+        "supporting_elements": "细线连接、漂浮公式、半透明小图标。"
+      },
+      "constraints": ["中文节点文字必须准确，不要生成伪英文。"]
+    },
+    {
+      "number": 8,
+      "title": "微积分切片思想：把连续河流拆成可计算的小段",
+      "role": "concept explanation",
+      "intent": "解释仿真基础数学思想。",
+      "key_points": [
+        "宏观河段 Segment 再被离散成微小积分步",
+        "每个切片计算局部停留时间与浓度变化",
+        "许多局部变化累积成整条河的净化过程",
+        "delta t = delta x / v",
+        "论文补充：约 200 个微步平衡精度与性能"
+      ],
+      "layout": {
+        "composition": "横向河流切片图占上半部分，下半部分用 3 个步骤卡解释。",
+        "content_zones": "标题顶部，视觉中部，步骤卡底部。",
+        "spacing": "公式单独放大，不与正文挤在一起。"
+      },
+      "visual_elements": {
+        "main_visual": "透明河流被切成许多玻璃薄片，每片有局部浓度和流速箭头。",
+        "supporting_elements": "delta x、delta t、v 的悬浮标注。"
+      },
+      "constraints": ["公式可用 delta 字母或 Δ 符号，但必须清晰。"]
+    },
+    {
+      "number": 9,
+      "title": "指数衰减模型：净化效果如何被计算",
+      "role": "formula hero",
+      "intent": "解释核心浓度递推模型。",
+      "key_points": [
+        "污染物浓度按一级反应动力学下降",
+        "C_out = C_in · e^(-k · delta t)",
+        "k 由催化剂活性、剂量、有效光强共同决定",
+        "停留时间越长，净化越明显",
+        "二阶指数中点法减少数值过冲"
+      ],
+      "layout": {
+        "composition": "超大公式居中，左侧浓度曲线从红转蓝，右侧中点校正小流程。",
+        "content_zones": "公式为第一视觉，解释卡片围绕。",
+        "spacing": "公式周围保持大留白。"
+      },
+      "visual_elements": {
+        "main_visual": "指数衰减曲线与光催化粒子。",
+        "supporting_elements": "中点预测、更新 NTU、重算 k、指数递推四步微流程。"
+      },
+      "constraints": ["不要把公式写错；中文不乱码。"]
+    },
+    {
+      "number": 10,
+      "title": "光照与浊度：光为什么进不去浑水",
+      "role": "scientific background",
+      "intent": "Approved sample slide; establishes final style.",
+      "key_points": [
+        "光催化依赖有效光强",
+        "水越深、越浑浊，光越难到达反应区域",
+        "I_eff = I0 · e^(-alpha · d)",
+        "NTU 会形成光遮蔽反馈",
+        "高浊度可能导致浊度锁定效应"
+      ],
+      "sample_approved": true,
+      "layout": {
+        "composition": "已批准样张，不重新生成。",
+        "content_zones": "保持样张。",
+        "spacing": "保持样张。"
+      },
+      "visual_elements": {
+        "main_visual": "已批准样张。",
+        "supporting_elements": "已批准样张。"
+      }
+    },
+    {
+      "number": 11,
+      "title": "流速、河宽与停留时间",
+      "role": "scientific background",
+      "intent": "解释流体力学变量如何影响反应时间。",
+      "key_points": [
+        "流速快：停留时间短，单段反应不充分",
+        "流速慢：停留时间长，但地形与扩散会改变效率",
+        "Q = v · A 解释河宽、水深和速度关系",
+        "湖泊段、浅滩段、汇合段改变局部反应条件",
+        "双河汇合使用截面积加权混合，保证质量守恒"
+      ],
+      "layout": {
+        "composition": "宽窄不同的三段河道剖面横向排列，下方是 Q=vA 公式和停留时间仪表。",
+        "content_zones": "上方剖面图，下方公式和要点。",
+        "spacing": "各剖面之间用细线分隔。"
+      },
+      "visual_elements": {
+        "main_visual": "透明水体剖面、流速箭头、河宽/水深尺寸标注。",
+        "supporting_elements": "汇合节点、质量守恒天平图标、停留时间计时器。"
+      },
+      "constraints": ["避免复杂 CFD 网格过密，保持课堂可读。"]
+    },
+    {
+      "number": 12,
+      "title": "仿真引擎：从参数到河道浓度场",
+      "role": "technical architecture",
+      "intent": "说明底层计算流程。",
+      "key_points": [
+        "输入：河段几何、污染物排放、催化剂投放、环境参数",
+        "计算：逐段采样、局部衰减、浊度反馈、温度修正、汇合混合",
+        "输出：出水浓度、NTU、水质等级、画布路径点",
+        "物理坐标与渲染坐标分离",
+        "TypeScript v4 与 Python v4 双引擎功能对等"
+      ],
+      "layout": {
+        "composition": "纵向数据管线：输入层、计算层、输出层，每层用玻璃模块表示。",
+        "content_zones": "左侧流程，右侧双引擎对等示意。",
+        "spacing": "流程箭头清楚，模块标题醒目。"
+      },
+      "visual_elements": {
+        "main_visual": "双引擎数字孪生计算管线。",
+        "supporting_elements": "TS / Python 镜像核心、物理坐标 m/s、渲染坐标 px 的转换箭头。"
+      },
+      "constraints": ["技术栈文字必须准确：TypeScript v4、Python v4。"]
+    },
+    {
+      "number": 13,
+      "title": "自动投药优化：找到更少投药、更好净化的方案",
+      "role": "algorithm explanation",
+      "intent": "解释自动优化算法。",
+      "key_points": [
+        "目标不是越多越好，而是投药次数与最终浓度的平衡",
+        "每个投药点包含段落索引、段内位置、活性、剂量",
+        "网格搜索快速找到候选点",
+        "Nelder-Mead 精修位置、剂量和活性",
+        "输出帕累托前沿并自动推荐达标方案"
+      ],
+      "layout": {
+        "composition": "左侧算法流程，右侧参数空间和最优点轨迹。",
+        "content_zones": "流程卡占 45%，参数空间占 55%。",
+        "spacing": "流程不超过 5 步，避免信息过载。"
+      },
+      "visual_elements": {
+        "main_visual": "贪心搜索到单纯形精修的高科技流程图。",
+        "supporting_elements": "4D 参数向量小卡、最优点发光、剂量粒子。"
+      },
+      "constraints": ["Nelder-Mead 拼写必须准确。"]
+    },
+    {
+      "number": 14,
+      "title": "优化结果长什么样：帕累托前沿",
+      "role": "data evidence",
+      "intent": "展示真实优化结果图。",
+      "key_points": [
+        "横轴：投药次数 N",
+        "纵轴：最终污染物浓度",
+        "优先选择达标中投药次数最少的点",
+        "无法达标时推荐最终浓度最低方案",
+        "N=3 逼近 I 类阈值，N=5 边际收益下降"
+      ],
+      "required_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/chart.png",
+          "role": "strict input asset and main Pareto chart evidence screenshot",
+          "fidelity": "preserve chart content, axes, labels, colors, curves, UI, and data; do not redraw or replace"
+        }
+      ],
+      "layout": {
+        "composition": "真实图表截图置于中央大玻璃画框，左侧三个解释标签，右下角一张边际收益提示卡。",
+        "content_zones": "图表为主体，解释卡不遮挡坐标轴。",
+        "spacing": "保证截图里的曲线和轴标签仍可见。"
+      },
+      "visual_elements": {
+        "main_visual": "嵌入帕累托前沿截图。",
+        "supporting_elements": "达标线 callout、N=3 推荐点、高亮边际收益下降。"
+      },
+      "source_image_rules": "Use the supplied screenshot as strict evidence; do not synthesize a similar chart."
+    },
+    {
+      "number": 15,
+      "title": "水质达标判定：从看起来清到指标合格",
+      "role": "standard compliance",
+      "intent": "把仿真结果转成水质等级结论。",
+      "key_points": [
+        "GB 3838-2002 将地表水分为 I、II、III、IV、V、劣 V 类",
+        "系统用残留比例与 WQI 表达达标状态",
+        "支持目标水质等级下的反向投药量计算",
+        "把复杂时序输出翻译成环境结论"
+      ],
+      "required_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/standard.png",
+          "role": "strict input asset and water quality standard evidence screenshot",
+          "fidelity": "preserve water quality class, labels, values, UI content, colors, and screenshot details; do not redraw or replace"
+        }
+      ],
+      "layout": {
+        "composition": "截图占左侧大区域，右侧是六级水质阶梯和合规解释卡。",
+        "content_zones": "左图右阶梯，底部一句工程意义。",
+        "spacing": "截图不要被压得太小，水质卡数值要可见。"
+      },
+      "visual_elements": {
+        "main_visual": "嵌入水质等级卡截图。",
+        "supporting_elements": "I→劣V 六级透明阶梯、绿色达标光环。"
+      },
+      "source_image_rules": "Use the supplied screenshot as strict evidence; do not synthesize a similar UI."
+    },
+    {
+      "number": 16,
+      "title": "技术实现：React 前端 + FastAPI 后端",
+      "role": "implementation architecture",
+      "intent": "概括工程落地。",
+      "key_points": [
+        "React + TypeScript 构建交互式仿真工作台",
+        "Canvas 负责 11 层河流渲染管线",
+        "Chart.js 展示浓度、NTU、河宽与帕累托前沿",
+        "FastAPI 提供仿真、优化、分类、反算剂量与协同接口",
+        "SQLite + SQLAlchemy 记录场景与仿真历史"
+      ],
+      "layout": {
+        "composition": "技术栈矩阵 + 系统拓扑图，前端在左，后端在右，中间 API 数据流。",
+        "content_zones": "顶部标题，中央技术栈，底部关键能力条。",
+        "spacing": "技术标签统一玻璃胶囊，避免杂乱。"
+      },
+      "visual_elements": {
+        "main_visual": "React、Canvas、Chart.js、FastAPI、SQLite、WebSocket 的透明卡片矩阵。",
+        "supporting_elements": "API 数据流、双引擎同步、历史记录数据库图标。"
+      },
+      "constraints": ["不要出现不存在的技术 logo，文字标签即可。"]
+    },
+    {
+      "number": 17,
+      "title": "03 Vibe Coding 介绍",
+      "role": "section divider",
+      "intent": "进入 AI 协作开发章节。",
+      "key_points": [
+        "人负责目标、判断、审美与验收",
+        "AI 加速生成、重构、测试和表达",
+        "从自然语言想法到可运行系统"
+      ],
+      "layout": {
+        "composition": "大号章节编号与标题，背景是自然语言提示流变成代码流，再变成河流界面。",
+        "content_zones": "左侧章节字，右侧抽象流程。",
+        "spacing": "章节页简洁，保留科技动感。"
+      },
+      "visual_elements": {
+        "main_visual": "玻璃工作台上漂浮 prompt、代码片段和项目 UI 缩略图。",
+        "supporting_elements": "蓝绿连线、轻微粒子、AI 协作光束。"
+      },
+      "constraints": ["不要把 Vibe Coding 画成营销海报，要保持学术项目汇报质感。"]
+    },
+    {
+      "number": 18,
+      "title": "Vibe Coding 是什么",
+      "role": "concept explanation",
+      "intent": "解释 AI 协作开发方法。",
+      "key_points": [
+        "用自然语言和 AI 进行结对开发",
+        "人负责目标、判断、审美与验收",
+        "AI 负责快速生成、重构、测试和补全工程细节",
+        "关键不是让 AI 全做，而是形成高速反馈循环",
+        "本项目中，人类把关科学合理性与最终表达"
+      ],
+      "layout": {
+        "composition": "左右对照：Human 判断力 与 AI 执行力，中间是循环箭头。",
+        "content_zones": "左人类角色，右 AI 角色，中间反馈循环。",
+        "spacing": "对照关系清楚，避免堆字。"
+      },
+      "visual_elements": {
+        "main_visual": "自然语言想法、代码流和运行界面三者汇合。",
+        "supporting_elements": "反馈循环：提出目标 → 生成 → 运行 → 审查 → 迭代。"
+      },
+      "constraints": ["不要使用拟人化过强或卡通过度的 AI 形象。"]
+    },
+    {
+      "number": 19,
+      "title": "我们如何 Vibe 出这个项目",
+      "role": "process timeline",
+      "intent": "用真实截图和时间线说明项目迭代过程。",
+      "key_points": [
+        "从一句项目想法开始，拆成模型、界面、后端、优化、展示",
+        "AI 帮助把抽象需求变成可运行代码和可视化界面",
+        "人不断检查物理逻辑、界面体验和展示表达",
+        "从公式演示迭代成完整数字孪生控制台",
+        "论文、代码和 PPT 互相补强"
+      ],
+      "required_images": [
+        {
+          "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/presentation/assets/screenshots/dosing.png",
+          "role": "strict input asset and final interface evidence screenshot",
+          "fidelity": "preserve UI content, labels, layout, and screenshot details; do not redraw or replace"
+        }
+      ],
+      "layout": {
+        "composition": "上方横向时间线，下方嵌入真实界面截图，右侧总结 AI 协作价值。",
+        "content_zones": "时间线顶部，截图底部，解释卡右侧。",
+        "spacing": "截图和时间线不要互相遮挡。"
+      },
+      "visual_elements": {
+        "main_visual": "想法 → v1 模型 → v4 物理引擎 → 自动优化 → 苹果玻璃界面 → 学术论文 → PPT 展示。",
+        "supporting_elements": "嵌入投药配置截图，玻璃时间节点。"
+      },
+      "source_image_rules": "Use the supplied screenshot as strict evidence; do not synthesize a similar interface."
+    },
+    {
+      "number": 20,
+      "title": "04 项目总结",
+      "role": "section divider",
+      "intent": "进入总结章节。",
+      "key_points": [
+        "为什么做",
+        "懂什么知识",
+        "怎么做出来",
+        "项目价值与后续方向"
+      ],
+      "layout": {
+        "composition": "大号章节编号与标题，清澈河流穿过透明数据面板。",
+        "content_zones": "中部章节标题，底部四个小关键词。",
+        "spacing": "强调收束感，画面简洁。"
+      },
+      "visual_elements": {
+        "main_visual": "清澈河流、绿色达标光环、透明总结面板。",
+        "supporting_elements": "四个关键词胶囊：原因、知识、实现、价值。"
+      },
+      "constraints": ["不要在章节页写长段落。"]
+    },
+    {
+      "number": 21,
+      "title": "项目价值与局限",
+      "role": "project evaluation",
+      "intent": "客观总结价值、贡献与不足。",
+      "key_points": [
+        "价值 1：把高数、化学、物理、环境科学连接成可交互系统",
+        "价值 2：让投药位置与剂量优化变得直观可解释",
+        "价值 3：展示 AI 协作开发在学生项目中的效率",
+        "论文贡献：揭示动态浊度正反馈和光学突变阈值",
+        "局限：一维沿程降维模型尚未完整覆盖三维流场和多重米氏散射",
+        "未来：GIS、2.5D/3D 流场、更多水质指标、实验数据反推模型"
+      ],
+      "layout": {
+        "composition": "左侧价值三角，右侧局限与未来路线图。",
+        "content_zones": "左价值，右局限，下方未来方向。",
+        "spacing": "价值与局限形成平衡，不夸张。"
+      },
+      "visual_elements": {
+        "main_visual": "三角价值模型：学科融合、决策优化、AI 协作。",
+        "supporting_elements": "未来路线：GIS → 2.5D/3D → 多指标 → 实测校准。"
+      },
+      "constraints": ["保持客观学术语气，不要只写优点。"]
+    },
+    {
+      "number": 22,
+      "title": "总结：让治理方案先在数字河流中跑一遍",
+      "role": "closing",
+      "intent": "收束全 deck，并给出最终记忆点。",
+      "key_points": [
+        "微积分切片描述空间变化",
+        "指数衰减描述净化过程",
+        "光照、浊度、流速和地形解释真实复杂性",
+        "优化算法寻找更好的投药方案",
+        "Vibe Coding 加速从想法到系统的落地",
+        "最终交付：可演示、可解释、可扩展的河流光催化净化仿真程序"
+      ],
+      "layout": {
+        "composition": "全屏清澈河流与透明控制台，中央总结语，底部谢谢和演示提示。",
+        "content_zones": "中央总结，四周淡化视觉，底部致谢。",
+        "spacing": "收尾页要干净、有完成感。"
+      },
+      "visual_elements": {
+        "main_visual": "清澈河流、绿色达标光环、远处半透明数字孪生控制台。",
+        "supporting_elements": "微积分、衰减、优化、AI 协作四个小图标。"
+      },
+      "constraints": ["可以写“谢谢”，不要出现页码。"]
+    }
+  ]
+}

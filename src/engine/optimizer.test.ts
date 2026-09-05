@@ -1,7 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import {
   optimizeDosing,
-  type DosingPoint,
   type OptimizationRequest,
 } from './optimizer';
 import type { SimulationParamsV3 } from './simulation';
