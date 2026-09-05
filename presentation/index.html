@@ -1,0 +1,1243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>奶龙的治水奇旅 · 河流光催化净化数字孪生系统</title>
+<style>
+:root{
+  --bg:#fff4c7;
+  --bg-2:#eef7dc;
+  --ink:#303426;
+  --muted:#72765f;
+  --soft:#fff9df;
+  --green:#9fc8a6;
+  --green-2:#78b794;
+  --cyan:#b8dce4;
+  --yellow:#ecc653;
+  --yellow-2:#fff0b3;
+  --red:#d75d54;
+  --orange:#d99038;
+  --glass:rgba(255,255,255,.58);
+  --glass-2:rgba(255,255,255,.72);
+  --stroke:rgba(255,255,255,.72);
+  --stroke-hot:rgba(159,200,166,.46);
+  --shadow:0 30px 80px rgba(116,103,54,.18);
+  --radius:8px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  overflow:hidden;
+  color:var(--ink);
+  background:
+    radial-gradient(1100px 620px at 24% 12%,rgba(255,240,179,.72),transparent 62%),
+    radial-gradient(980px 680px at 78% 20%,rgba(184,220,228,.48),transparent 64%),
+    radial-gradient(1050px 720px at 52% 96%,rgba(159,200,166,.42),transparent 66%),
+    linear-gradient(145deg,var(--bg),var(--bg-2) 58%,#fffaf0);
+  font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(122,133,91,.075) 1px, transparent 1px),
+    linear-gradient(90deg,rgba(122,133,91,.055) 1px, transparent 1px);
+  background-size:54px 54px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.28),transparent 78%);
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,.34),transparent 18%,transparent 82%,rgba(255,255,255,.3));
+}
+#river-bg{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  z-index:0;
+  pointer-events:none;
+}
+#deck{
+  position:relative;
+  z-index:1;
+  width:100vw;
+  height:100vh;
+}
+.slide{
+  position:absolute;
+  inset:0;
+  display:none;
+  grid-template-columns:minmax(0,1fr);
+  align-items:center;
+  padding:5.2vh 6vw;
+  opacity:0;
+}
+.slide.active{
+  display:grid;
+  opacity:1;
+  animation:enter .42s ease both;
+}
+@keyframes enter{
+  from{opacity:0;transform:translateY(14px) scale(.992)}
+  to{opacity:1;transform:none}
+}
+.layout{
+  width:min(1280px,100%);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1.08fr .92fr;
+  gap:28px;
+  align-items:center;
+}
+.layout.wide{grid-template-columns:1fr}
+.layout.reverse{grid-template-columns:.92fr 1.08fr}
+.glass{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--stroke);
+  border-radius:var(--radius);
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.74),rgba(255,255,255,.42) 42%,rgba(255,247,213,.54)),
+    var(--glass);
+  backdrop-filter:blur(24px) saturate(170%);
+  -webkit-backdrop-filter:blur(24px) saturate(170%);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.72);
+}
+.glass::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(120deg,rgba(255,255,255,.54),transparent 22%,transparent 62%,rgba(242,214,117,.18)),
+    linear-gradient(180deg,rgba(255,255,255,.2),transparent 55%);
+  mix-blend-mode:screen;
+}
+.panel{padding:34px}
+.hero-panel{padding:44px 46px}
+.visual{
+  min-height:430px;
+  padding:24px;
+  display:grid;
+  place-items:center;
+}
+.kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  height:28px;
+  padding:0 12px;
+  border:1px solid rgba(159,200,166,.34);
+  border-radius:999px;
+  color:#4e825f;
+  background:rgba(255,250,226,.58);
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.04em;
+  margin-bottom:18px;
+}
+.kicker::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 18px var(--green);
+}
+h1,h2,h3,p{margin:0}
+h1{
+  font-size:clamp(40px,6.2vw,88px);
+  line-height:1.02;
+  letter-spacing:0;
+  font-weight:950;
+}
+h2{
+  font-size:clamp(30px,4.15vw,58px);
+  line-height:1.08;
+  letter-spacing:0;
+  font-weight:920;
+}
+h3{
+  font-size:clamp(19px,2vw,28px);
+  line-height:1.25;
+  font-weight:860;
+}
+.gradient-text{
+  color:transparent;
+  background:linear-gradient(92deg,#38402b,#6e9c69 46%,#d2a928);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+.subtitle{
+  margin-top:18px;
+  color:var(--muted);
+  font-size:clamp(17px,1.65vw,24px);
+  line-height:1.65;
+}
+.lead{
+  margin-top:20px;
+  font-size:clamp(18px,1.9vw,26px);
+  line-height:1.58;
+  color:#3f442f;
+}
+.bullets{
+  display:grid;
+  gap:14px;
+  margin-top:24px;
+  padding:0;
+  list-style:none;
+}
+.bullets li{
+  display:grid;
+  grid-template-columns:18px 1fr;
+  gap:12px;
+  align-items:start;
+  font-size:clamp(16px,1.55vw,22px);
+  line-height:1.55;
+  color:#3c4230;
+}
+.bullets li::before{
+  content:"";
+  width:10px;
+  height:10px;
+  margin-top:.62em;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 18px rgba(199,240,220,.72);
+}
+.muted{color:var(--muted)}
+.yellow{color:var(--yellow)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.small{font-size:clamp(13px,1.15vw,16px);line-height:1.5;color:var(--muted)}
+.tag-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.tag{
+  padding:10px 13px;
+  border:1px solid rgba(126,141,95,.16);
+  border-radius:999px;
+  background:rgba(255,255,255,.48);
+  color:#424733;
+  font-weight:800;
+  font-size:clamp(13px,1.1vw,16px);
+}
+.tag.hot{border-color:var(--stroke-hot);color:#4e825f;background:rgba(229,245,224,.55)}
+.metric-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-top:24px;
+}
+.metric,.card{
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.42);
+  padding:18px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.56);
+}
+.metric strong{
+  display:block;
+  color:var(--green);
+  font-size:clamp(26px,3.2vw,48px);
+  line-height:1;
+  margin-bottom:10px;
+}
+.metric span,.card p{color:var(--muted);font-size:clamp(13px,1.12vw,16px);line-height:1.55}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-top:24px;
+}
+.card h3{font-size:clamp(18px,1.45vw,22px);margin-bottom:8px;color:#343a28}
+.comparison{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin-top:24px;
+}
+.compare-box{
+  min-height:280px;
+  padding:22px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.compare-box.bad{border-color:rgba(215,93,84,.34)}
+.compare-box.good{border-color:rgba(159,200,166,.46)}
+.stamp{
+  align-self:flex-start;
+  font-size:clamp(44px,5vw,80px);
+  line-height:1;
+  color:var(--red);
+  font-weight:950;
+}
+.formula{
+  margin:26px 0 10px;
+  padding:22px;
+  text-align:center;
+  border:1px solid rgba(159,200,166,.34);
+  border-radius:var(--radius);
+  background:rgba(255,250,226,.62);
+  color:#5f966d;
+  font-family:Inter,"PingFang SC",sans-serif;
+  font-size:clamp(28px,4.6vw,64px);
+  font-weight:920;
+  line-height:1.1;
+  text-shadow:0 0 28px rgba(199,240,220,.24);
+}
+.formula.small-formula{font-size:clamp(22px,3vw,42px)}
+.nailong{
+  position:relative;
+  max-width:min(260px,22vw);
+  width:100%;
+  filter:drop-shadow(0 18px 26px rgba(0,0,0,.38)) drop-shadow(0 0 26px rgba(242,214,117,.18));
+  animation:bob 3.4s ease-in-out infinite;
+  z-index:2;
+}
+.nailong.big{max-width:min(390px,31vw)}
+.nailong.small{max-width:min(190px,18vw)}
+.nailong.corner{
+  position:absolute;
+  right:5.2vw;
+  bottom:7vh;
+  max-width:min(170px,14vw);
+}
+@keyframes bob{
+  0%,100%{transform:translateY(0) rotate(-1deg)}
+  50%{transform:translateY(-10px) rotate(1deg)}
+}
+.speech{
+  position:relative;
+  padding:16px 18px;
+  border:1px solid rgba(126,141,95,.16);
+  border-radius:var(--radius);
+  background:rgba(255,250,226,.62);
+  color:#5f4b14;
+  font-weight:850;
+  line-height:1.45;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+}
+.river-hero{
+  position:relative;
+  width:100%;
+  min-height:470px;
+  overflow:hidden;
+}
+.river-hero svg{width:100%;height:100%;position:absolute;inset:0}
+.river-path{
+  fill:none;
+  stroke:var(--green);
+  stroke-width:34;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  filter:drop-shadow(0 0 20px rgba(199,240,220,.42));
+  stroke-dasharray:22 18;
+  animation:flow 1.4s linear infinite;
+}
+.river-path.back{stroke:rgba(199,237,240,.22);stroke-width:58;stroke-dasharray:none}
+@keyframes flow{to{stroke-dashoffset:-80}}
+.floating-label{
+  position:absolute;
+  left:24px;
+  bottom:24px;
+  right:24px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.flow-chip{
+  padding:12px;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.46);
+  color:#4b513a;
+  font-size:13px;
+  font-weight:850;
+  text-align:center;
+}
+.mock-window{
+  width:100%;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.48);
+  overflow:hidden;
+  box-shadow:0 22px 60px rgba(116,103,54,.16);
+}
+.mock-bar{
+  height:34px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:0 12px;
+  border-bottom:1px solid rgba(126,141,95,.12);
+  background:rgba(255,250,226,.62);
+}
+.dot{width:10px;height:10px;border-radius:50%;background:#ff5f56}
+.dot:nth-child(2){background:#ffbd2e}
+.dot:nth-child(3){background:#27c93f}
+.mock-body{padding:16px}
+.screen-img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:520px;
+  object-fit:cover;
+  object-position:top center;
+  border-radius:var(--radius);
+  border:1px solid rgba(126,141,95,.12);
+}
+.screen-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:18px;
+}
+.screen-tile{
+  position:relative;
+  overflow:hidden;
+  min-height:190px;
+  border:1px solid rgba(126,141,95,.12);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.44);
+}
+.screen-tile img{
+  width:100%;
+  height:100%;
+  min-height:190px;
+  object-fit:cover;
+  object-position:top center;
+  display:block;
+}
+.screen-tile span{
+  position:absolute;
+  left:10px;
+  bottom:10px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(0,0,0,.58);
+  color:white;
+  font-size:12px;
+  font-weight:850;
+  backdrop-filter:blur(10px);
+}
+.belt{
+  width:100%;
+  display:grid;
+  gap:13px;
+}
+.belt-track{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:8px;
+  padding:16px;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:linear-gradient(90deg,rgba(255,250,226,.5),rgba(255,255,255,.32));
+}
+.cell{
+  aspect-ratio:1.1;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:6px;
+  background:rgba(229,245,224,.52);
+  color:#8f7020;
+  font-weight:900;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+}
+.cell.dirty{background:rgba(215,93,84,.18);color:#8f3731}
+.cell.clean{background:rgba(159,200,166,.32);color:#3f6f51}
+.chart{
+  width:100%;
+  height:260px;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.42);
+}
+.sun-water{
+  position:relative;
+  width:100%;
+  min-height:360px;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,240,179,.65),rgba(199,237,240,.34) 30%,rgba(159,200,166,.38));
+}
+.sunbeam{
+  position:absolute;
+  left:16%;
+  top:-20%;
+  width:34%;
+  height:118%;
+  background:linear-gradient(180deg,rgba(255,239,152,.75),rgba(255,239,152,.24),transparent 72%);
+  transform:skewX(-14deg);
+  filter:blur(4px);
+}
+.turbidity{
+  position:absolute;
+  inset:42% 0 0;
+  background:repeating-linear-gradient(0deg,rgba(217,144,56,.13) 0 8px,rgba(215,93,84,.075) 8px 16px);
+}
+.river-width{
+  width:100%;
+  display:grid;
+  gap:16px;
+}
+.river-band{
+  position:relative;
+  height:86px;
+  border-radius:999px;
+  background:linear-gradient(90deg,rgba(184,220,228,.46),rgba(159,200,166,.48));
+  border:1px solid rgba(126,141,95,.14);
+  overflow:hidden;
+}
+.river-band.narrow{width:56%;height:54px}
+.river-band.wide{width:100%;height:112px}
+.river-band::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 26px,rgba(255,255,255,.42) 26px 30px);
+  animation:stream 1.2s linear infinite;
+}
+.river-band.wide::after{animation-duration:2.4s}
+@keyframes stream{to{transform:translateX(56px)}}
+.gear-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin:24px 0;
+}
+.gear{
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  border:1px solid rgba(159,200,166,.3);
+  border-radius:50%;
+  background:rgba(229,245,224,.48);
+  color:#3d5d42;
+  font-weight:900;
+  box-shadow:0 0 28px rgba(199,240,220,.1);
+}
+.swimlanes{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:22px;
+}
+.lane h3{
+  color:#9b7722;
+  margin-bottom:12px;
+}
+.mini-list{
+  display:grid;
+  gap:8px;
+  padding:0;
+  margin:0;
+  list-style:none;
+}
+.mini-list li{
+  color:#3f442f;
+  line-height:1.45;
+  font-size:clamp(14px,1.18vw,17px);
+}
+.tech-cloud{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-content:center;
+  justify-content:center;
+}
+.tech{
+  min-width:112px;
+  padding:16px;
+  text-align:center;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.46);
+  color:#38402b;
+  font-weight:950;
+}
+.features{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:22px;
+}
+.feature{
+  min-height:96px;
+  padding:15px;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.42);
+}
+.feature strong{display:block;color:var(--green);font-size:16px;margin-bottom:7px}
+.feature span{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+.routes{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-top:24px;
+}
+.route{
+  min-height:210px;
+  padding:22px;
+  border:1px solid rgba(126,141,95,.14);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.42);
+}
+.route strong{display:block;font-size:22px;color:#343a28;margin-bottom:12px}
+.route span{color:var(--muted);line-height:1.55}
+.footer{
+  position:fixed;
+  z-index:5;
+  left:28px;
+  right:28px;
+  bottom:18px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  color:rgba(48,52,38,.62);
+  font-size:13px;
+  pointer-events:none;
+}
+#progress-track{
+  flex:1;
+  height:3px;
+  border-radius:999px;
+  background:rgba(126,141,95,.16);
+  overflow:hidden;
+}
+#progress{
+  height:100%;
+  width:0;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--green),var(--yellow));
+  box-shadow:0 0 20px rgba(236,198,83,.24);
+  transition:width .28s ease;
+}
+#page-no{font-weight:800;color:rgba(48,52,38,.76)}
+.print-note{display:none}
+@media (max-width:900px){
+  body{overflow:auto}
+  #deck{height:auto}
+  .slide,.slide.active{
+    position:relative;
+    min-height:100vh;
+    display:grid;
+    opacity:1;
+    animation:none;
+  }
+  .layout,.layout.reverse{grid-template-columns:1fr}
+  .visual{min-height:300px}
+  .nailong,.nailong.big{max-width:min(260px,64vw)}
+  .nailong.corner{display:none}
+  .cards,.features,.metric-grid,.routes,.gear-grid{grid-template-columns:1fr}
+  .comparison,.swimlanes,.screen-grid{grid-template-columns:1fr}
+  .floating-label{grid-template-columns:1fr;position:relative;left:auto;right:auto;bottom:auto;margin-top:260px}
+  .footer{display:none}
+}
+@media print{
+  body{overflow:visible;background:#fff4c7}
+  #river-bg,.footer{display:none}
+  .slide{
+    position:relative;
+    display:grid!important;
+    opacity:1!important;
+    width:100vw;
+    height:100vh;
+    page-break-after:always;
+  }
+  .print-note{display:block}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<canvas id="river-bg"></canvas>
+<main id="deck">
+  <section class="slide active">
+    <div class="layout">
+      <div class="glass hero-panel">
+        <div class="kicker">封面 · 奶龙的治水奇旅</div>
+        <h1 class="gradient-text">大肚子奶龙的治水奇旅</h1>
+        <p class="lead">河流光催化净化数字孪生系统</p>
+        <p class="subtitle">基于微积分切片与指数衰减的高自由度水质仿真。把一整条河搬进网页, 像玩游戏一样调参数、看净化、找方案。</p>
+        <div class="tag-row">
+          <span class="tag hot">Liquid Glass</span>
+          <span class="tag">数字孪生</span>
+          <span class="tag">实时仿真</span>
+          <span class="tag">光催化净化</span>
+        </div>
+      </div>
+      <div class="glass visual river-hero">
+        <svg viewBox="0 0 700 460" aria-hidden="true">
+          <path class="river-path back" d="M28 350 C150 220 235 435 355 275 C455 140 525 230 672 80"/>
+          <path class="river-path" d="M28 350 C150 220 235 435 355 275 C455 140 525 230 672 80"/>
+        </svg>
+        <img class="nailong big" src="assets/nailong/transparent/stand.png" alt="站立奶龙" />
+        <div class="floating-label">
+          <div class="flow-chip">60帧丝滑对流感</div>
+          <div class="flow-chip">荧光绿河流</div>
+          <div class="flow-chip">Q弹冒出场</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout reverse">
+      <div class="glass visual">
+        <img class="nailong big" src="assets/nailong/transparent/peace.png" alt="比剪刀手奶龙" />
+        <div class="speech">欢迎来到云上看河现场！</div>
+      </div>
+      <div class="glass panel">
+        <div class="kicker">一分钟看懂</div>
+        <h2>我们做了什么</h2>
+        <p class="subtitle">把一整条河的净化过程装进网页, 让水质变化不再只停留在公式和想象里。</p>
+        <div class="metric-grid">
+          <div class="metric"><strong>01</strong><span>数字孪生: 给真实河流做一个会动、会算的网页分身。</span></div>
+          <div class="metric"><strong>02</strong><span>实时仿真: 拖动参数后, 河道与曲线同步刷新。</span></div>
+          <div class="metric"><strong>03</strong><span>光催化净化: 用模型估算污染物怎样一段段变少。</span></div>
+        </div>
+        <ul class="bullets">
+          <li>团队分工: 一人钻研物理化学规律, 一人指挥 AI 写代码。</li>
+          <li>展示目标: 像玩游戏一样实时调参, 但背后每一步都有模型支撑。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout wide">
+      <div class="glass panel">
+        <div class="kicker">现实痛点</div>
+        <h2>传统治污太玄学</h2>
+        <div class="comparison">
+          <div class="glass compare-box bad">
+            <div>
+              <h3>传统方式</h3>
+              <ul class="bullets">
+                <li>纸面公式堆很多, 但过程看不见。</li>
+                <li>实验周期长, 变量多, 试错成本高。</li>
+                <li>投药靠经验, 多了浪费, 少了不达标。</li>
+              </ul>
+            </div>
+            <div class="stamp">×</div>
+          </div>
+          <div class="glass compare-box good">
+            <div>
+              <h3>我们的方案</h3>
+              <ul class="bullets">
+                <li>网页里直接看河流颜色和曲线变化。</li>
+                <li>参数一改, 模型立即重新计算。</li>
+                <li>系统还能自动寻找更省药的达标方案。</li>
+              </ul>
+            </div>
+            <div class="stamp green">✓</div>
+          </div>
+        </div>
+      </div>
+      <img class="nailong corner" src="assets/nailong/transparent/think.png" alt="思考奶龙" />
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout">
+      <div class="glass panel">
+        <div class="kicker">我们的解法</div>
+        <h2>把河流装进网页</h2>
+        <ul class="bullets">
+          <li>选场景: 暴雨城市、山地晴天、不同河道条件。</li>
+          <li>拖参数: 河宽、水深、流量、浊度、光照、催化剂投放量。</li>
+          <li>看结果: 污染物沿河流方向一段段减少, 曲线同步变化。</li>
+          <li>像调一条真实河道一样, 动动手指就能预演净化全过程。</li>
+        </ul>
+      </div>
+      <div class="glass visual">
+        <div class="mock-window">
+          <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
+            <img class="screen-img" src="assets/screenshots/river.png" alt="河道观察窗口截图" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <img class="nailong corner" src="assets/nailong/transparent/stand.png" alt="导游奶龙" />
+  </section>
+
+  <section class="slide">
+    <div class="layout reverse">
+      <div class="glass visual">
+        <div class="belt">
+          <div class="belt-track">
+            <div class="cell dirty">污</div><div class="cell dirty">污</div><div class="cell">水</div><div class="cell">水</div>
+            <div class="cell clean">清</div><div class="cell clean">清</div><div class="cell clean">清</div><div class="cell clean">清</div>
+          </div>
+          <div class="belt-track">
+            <div class="cell">cell[0]</div><div class="cell">cell[1]</div><div class="cell">cell[2]</div><div class="cell">cell[3]</div>
+            <div class="cell">cell[4]</div><div class="cell">cell[5]</div><div class="cell">cell[6]</div><div class="cell">cell[7]</div>
+          </div>
+          <p class="small">每个时间步, 数组向下游移动一格, 河水就“流”起来了。</p>
+        </div>
+      </div>
+      <div class="glass panel">
+        <div class="kicker">物理层</div>
+        <h2>奶龙的蛋糕传送带</h2>
+        <ul class="bullets">
+          <li>连续河流太难直接算, 就把它切成许多小水块。</li>
+          <li>每一米河段对应数组里的一个单元格, 保存污染物浓度、浊度、河宽等状态。</li>
+          <li>每秒执行一次移位: 上游水块进入, 下游水块离开, 中间逐段反应。</li>
+          <li>这就是微积分切片思想在程序里的样子。</li>
+        </ul>
+      </div>
+    </div>
+    <img class="nailong corner" src="assets/nailong/transparent/selfie.png" alt="奶龙店员" />
+  </section>
+
+  <section class="slide">
+    <div class="layout">
+      <div class="glass panel">
+        <div class="kicker">化学层</div>
+        <h2>吃披萨定律</h2>
+        <p class="subtitle">污染物不是瞬间消失, 而是每秒按剩余量的固定比例减少。</p>
+        <div class="formula">C(t)=C<sub>0</sub> · e<sup>-kt</sup></div>
+        <ul class="bullets">
+          <li>如果每秒只剩 90%, 第 1 秒是 90%, 第 2 秒是 81%, 第 3 秒是 72.9%。</li>
+          <li>剩得越多, 被处理的绝对量越大; 越到后面, 下降越慢。</li>
+          <li>这就是一阶动力学和指数衰减。</li>
+        </ul>
+      </div>
+      <div class="glass visual">
+        <svg class="chart" viewBox="0 0 700 260" role="img" aria-label="指数衰减曲线">
+          <line x1="50" y1="218" x2="650" y2="218" stroke="rgba(126,141,95,.34)" />
+          <line x1="50" y1="28" x2="50" y2="218" stroke="rgba(126,141,95,.34)" />
+          <path d="M50 52 C130 70 170 112 230 145 C320 192 450 207 650 216" fill="none" stroke="#9fc8a6" stroke-width="8" stroke-linecap="round" />
+          <path d="M50 52 C130 70 170 112 230 145 C320 192 450 207 650 216" fill="none" stroke="#ecc653" stroke-width="2" stroke-linecap="round" />
+          <text x="60" y="36" fill="#d75d54" font-size="24" font-weight="800">污染高</text>
+          <text x="536" y="202" fill="#5f966d" font-size="24" font-weight="800">逐渐变清</text>
+        </svg>
+        <img class="nailong small" src="assets/nailong/transparent/laugh.png" alt="大笑奶龙" />
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout reverse">
+      <div class="glass visual">
+        <div class="sun-water">
+          <div class="sunbeam"></div>
+          <div class="turbidity"></div>
+          <img class="nailong small" src="assets/nailong/transparent/pushup.png" alt="俯卧撑奶龙" style="position:absolute;right:12%;bottom:10%" />
+        </div>
+      </div>
+      <div class="glass panel">
+        <div class="kicker">光学层</div>
+        <h2>戴墨镜的太阳光</h2>
+        <p class="subtitle">浑浊的水就像给太阳戴墨镜, 光越难照到深处, 光催化反应越慢。</p>
+        <div class="formula small-formula">I<sub>eff</sub>=I<sub>0</sub> · e<sup>-αd</sup></div>
+        <ul class="bullets">
+          <li>NTU 越高, 水越浑, 衰减系数 α 越大。</li>
+          <li>水深 d 越大, 到达水下的有效光强越弱。</li>
+          <li>光照不够时, 催化剂就像“偷懒”, 净化速度下降。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout">
+      <div class="glass panel">
+        <div class="kicker">几何层</div>
+        <h2>河宽的魔法</h2>
+        <div class="formula small-formula">v = Q / (河宽 × 水深)</div>
+        <ul class="bullets">
+          <li>同样的水量经过窄河道, 会被挤得更快。</li>
+          <li>宽河道流速更慢, 停留时间更长, 有更多机会被处理。</li>
+          <li>停留时间直接决定污染物能被净化多少。</li>
+        </ul>
+      </div>
+      <div class="glass visual">
+        <div class="river-width">
+          <h3>窄河: 快速通过</h3>
+          <div class="river-band narrow"></div>
+          <h3>宽河: 悠闲停留</h3>
+          <div class="river-band wide"></div>
+        </div>
+        <img class="nailong small" src="assets/nailong/transparent/meditate.png" alt="禅定奶龙" />
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout wide">
+      <div class="glass panel">
+        <div class="kicker">公式合体</div>
+        <h2>综合反应效率</h2>
+        <div class="gear-grid">
+          <div class="gear">物理<br>水怎么流</div>
+          <div class="gear">化学<br>怎么降解</div>
+          <div class="gear">光学<br>光够不够</div>
+          <div class="gear">几何<br>停多久</div>
+        </div>
+        <div class="formula">效率 = k<sub>cat</sub> × I<sub>eff</sub> × 停留时间</div>
+        <ul class="bullets">
+          <li>每一段河的净化效果, 取决于催化剂强不强、光够不够、水停得久不久。</li>
+          <li>四层规律拼起来, 就能算出每段河能净化多少污染。</li>
+          <li>这就是整个系统的心脏。</li>
+        </ul>
+      </div>
+      <img class="nailong corner" src="assets/nailong/transparent/pushup.png" alt="加油奶龙" />
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout">
+      <div class="glass panel">
+        <div class="kicker">开发方式</div>
+        <h2>什么是 Vibe Coding</h2>
+        <ul class="bullets">
+          <li>不是死记编程语法, 而是用清晰需求和结构化提示词指挥 AI 写代码。</li>
+          <li>把需求拆成模型、页面、交互、数据、视觉, 一轮轮让 AI 实现和修正。</li>
+          <li>人负责判断方向, AI 负责快速把想法落成可运行原型。</li>
+        </ul>
+        <div class="speech" style="margin-top:22px">“把河道改宽, 流速变慢, 今晚就要。”</div>
+      </div>
+      <div class="glass visual">
+        <div class="mock-window">
+          <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
+            <pre class="small" style="white-space:pre-wrap;margin:0;color:#3f442f">需求输入:
+React + Vite 页面
+河道 Canvas 实时刷新
+污染物指数衰减
+自动优化投药
+
+AI 输出:
+组件、状态、算法、样式、测试...</pre>
+          </div>
+        </div>
+        <img class="nailong small" src="assets/nailong/transparent/think.png" alt="思考奶龙" />
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout wide">
+      <div class="glass panel">
+        <div class="kicker">人机分工</div>
+        <h2>你出主意, AI 出力</h2>
+        <div class="swimlanes">
+          <div class="glass card lane">
+            <h3>人类泳道</h3>
+            <ul class="mini-list">
+              <li>定义问题: 河流净化要看什么结果</li>
+              <li>查资料: 微积分、动力学、光衰减、连续性方程</li>
+              <li>验收模型: 公式是否合理, 结果是否可信</li>
+              <li>决定体验: 哪些参数要能拖动, 哪些图最直观</li>
+            </ul>
+          </div>
+          <div class="glass card lane">
+            <h3>AI 泳道</h3>
+            <ul class="mini-list">
+              <li>生成 React 组件和仿真代码</li>
+              <li>修复报错, 补交互, 调视觉</li>
+              <li>把抽象公式变成 Canvas 与曲线图</li>
+              <li>辅助整理演示文案和页面结构</li>
+            </ul>
+          </div>
+        </div>
+        <div class="speech" style="margin-top:20px">架构靠人类, 落地靠 AI。</div>
+      </div>
+      <img class="nailong corner" src="assets/nailong/transparent/stand.png" alt="站立奶龙" />
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout reverse">
+      <div class="glass visual">
+        <div class="tech-cloud">
+          <div class="tech">React</div>
+          <div class="tech">Vite</div>
+          <div class="tech">Canvas</div>
+          <div class="tech">Chart.js</div>
+          <div class="tech">Python API</div>
+          <div class="tech">SQLite</div>
+          <div class="tech">WebSocket</div>
+          <div class="tech">Realtime</div>
+        </div>
+      </div>
+      <div class="glass panel">
+        <div class="kicker">技术栈</div>
+        <h2>前端加云端后端</h2>
+        <ul class="bullets">
+          <li>前端负责流畅交互: 滑块、河道 Canvas、曲线、状态卡片。</li>
+          <li>本地模型秒算, 让用户拖参数时立即看到反馈。</li>
+          <li>云端后端负责场景保存、仿真历史和多人协同观察。</li>
+          <li>一人调参, 全组可以同时在线围观同一条河。</li>
+        </ul>
+      </div>
+    </div>
+    <img class="nailong corner" src="assets/nailong/transparent/selfie.png" alt="自拍奶龙" />
+  </section>
+
+  <section class="slide">
+    <div class="layout">
+      <div class="glass panel">
+        <div class="kicker">成果总览</div>
+        <h2>城市河流净化观察台</h2>
+        <ul class="bullets">
+          <li>这是我们的成品主界面, 像一个真实河道的控制中心。</li>
+          <li>左侧看场景和参数, 中间看河流变化, 右侧看达标状态和协同信息。</li>
+          <li>场景方案库支持暴雨城市、山地晴天等不同环境。</li>
+          <li>后端在线状态让项目不只是单机 demo, 更像一个可协作系统。</li>
+        </ul>
+      </div>
+      <div class="glass visual">
+        <div class="screen-grid">
+          <div class="screen-tile"><img src="assets/screenshots/river.png" alt="河道全景"><span>河道观察台</span></div>
+          <div class="screen-tile"><img src="assets/screenshots/dosing.png" alt="投药面板"><span>投药配置</span></div>
+          <div class="screen-tile"><img src="assets/screenshots/chart.png" alt="曲线"><span>联动曲线</span></div>
+          <div class="screen-tile"><img src="assets/screenshots/standard.png" alt="达标"><span>水质标准</span></div>
+        </div>
+      </div>
+    </div>
+    <img class="nailong corner" src="assets/nailong/transparent/stand.png" alt="讲解员奶龙" />
+  </section>
+
+  <section class="slide">
+    <div class="layout reverse">
+      <div class="glass visual">
+        <img class="screen-img" src="assets/screenshots/river.png" alt="实时水流观察窗" />
+      </div>
+      <div class="glass panel">
+        <div class="kicker">实时水流观察窗</div>
+        <h2>把数组移位变成河水流动</h2>
+        <ul class="bullets">
+          <li>2D 河道显示投药点、排污点、分段状态和漂流小人。</li>
+          <li>每个河段对应数组里的一个单元格, 颜色由污染物浓度映射出来。</li>
+          <li>水从红到绿, 就是污染物从高到低的直观过程。</li>
+          <li>投药点改变后, 下游颜色变化会随时间推进。</li>
+        </ul>
+      </div>
+    </div>
+    <img class="nailong corner" src="assets/nailong/transparent/peace.png" alt="漂流奶龙" />
+  </section>
+
+  <section class="slide">
+    <div class="layout">
+      <div class="glass panel">
+        <div class="kicker">三轴联动曲线</div>
+        <h2>数据会说话</h2>
+        <ul class="bullets">
+          <li>红线: 污染物相对浓度, 越低代表越干净。</li>
+          <li>黄线: 水体浊度 NTU, 越高代表光越难穿透。</li>
+          <li>绿线: 物理河宽, 直接影响流速和停留时间。</li>
+          <li>折线图与河道 Canvas 像素级对齐, 一眼看出污染在哪段暴跌。</li>
+        </ul>
+      </div>
+      <div class="glass visual">
+        <img class="screen-img" src="assets/screenshots/chart.png" alt="三轴联动曲线" />
+        <div class="speech" style="margin-top:14px">这里污染暴跌！</div>
+      </div>
+    </div>
+    <img class="nailong corner" src="assets/nailong/transparent/selfie.png" alt="指图奶龙" />
+  </section>
+
+  <section class="slide">
+    <div class="layout reverse">
+      <div class="glass visual">
+        <img class="screen-img" src="assets/screenshots/dosing.png" alt="自动优化投药面板" />
+      </div>
+      <div class="glass panel">
+        <div class="kicker">智能决策</div>
+        <h2>自动优化投药</h2>
+        <ul class="bullets">
+          <li>系统不只是展示结果, 还能反过来帮你找方案。</li>
+          <li>输入目标水质, 自动计算更合适的投放坐标和药剂量。</li>
+          <li>同时估算每段反应效率、达标情况和综合 WQI 评分。</li>
+          <li>在满足目标水质的前提下, 优先选择更少药剂、更稳定达标的方案。</li>
+        </ul>
+      </div>
+    </div>
+    <img class="nailong corner" src="assets/nailong/transparent/stand.png" alt="指挥官奶龙" />
+  </section>
+
+  <section class="slide">
+    <div class="layout wide">
+      <div class="glass panel">
+        <div class="kicker">核心功能大阅兵</div>
+        <h2>一页看完硬核功能</h2>
+        <div class="features">
+          <div class="feature"><strong>多组分自由配比</strong><span>不同污染物可按比例组合。</span></div>
+          <div class="feature"><strong>预设场景</strong><span>暴雨城市、山地晴天一键加载。</span></div>
+          <div class="feature"><strong>像素级对齐</strong><span>河道 Canvas 与曲线图同步定位。</span></div>
+          <div class="feature"><strong>一类水提醒</strong><span>达标线和状态色直观提示。</span></div>
+          <div class="feature"><strong>自动优化投药</strong><span>计算更省药的投放策略。</span></div>
+          <div class="feature"><strong>多人协同观察</strong><span>一人调参, 多人同步围观。</span></div>
+          <div class="feature"><strong>云端存档</strong><span>保存场景、参数和结果。</span></div>
+          <div class="feature"><strong>历史回放</strong><span>比较不同方案的净化路径。</span></div>
+          <div class="feature"><strong>综合 WQI</strong><span>把复杂水质压缩成可读评分。</span></div>
+        </div>
+      </div>
+      <img class="nailong corner" src="assets/nailong/transparent/laugh.png" alt="游泳开心奶龙" />
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout wide">
+      <div class="glass panel">
+        <div class="kicker">应用前景</div>
+        <h2>不止于治河</h2>
+        <p class="subtitle">只要存在流动、扩散、衰减和反应过程, 同一套数字孪生引擎就能迁移到更多领域。</p>
+        <div class="routes">
+          <div class="route"><strong>海洋赤潮预警</strong><span>把污染物换成藻类浓度, 结合光照和水流预测风险扩散。</span></div>
+          <div class="route"><strong>化工厂管道模拟</strong><span>把河道换成管道, 观察流速、反应与安全阈值。</span></div>
+          <div class="route"><strong>STEM 跨学科教学</strong><span>把微积分、化学动力学、环境科学和 AI 编程放在同一个可操作场景里。</span></div>
+        </div>
+      </div>
+      <img class="nailong corner" src="assets/nailong/transparent/meditate.png" alt="出发奶龙" />
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="layout">
+      <div class="glass hero-panel">
+        <div class="kicker">感谢聆听</div>
+        <h2 class="gradient-text">和奶龙一起用计算思维守护绿水青山</h2>
+        <p class="lead">我们把看不见的水质变化变成可计算、可交互、可决策的数字河流。</p>
+        <div class="tag-row">
+          <span class="tag hot">团队成员</span>
+          <span class="tag">指导老师</span>
+          <span class="tag">学校 / 班级</span>
+          <span class="tag">演示链接 / 二维码</span>
+        </div>
+      </div>
+      <div class="glass visual">
+        <img class="nailong big" src="assets/nailong/transparent/laugh.png" alt="感谢奶龙" />
+        <div class="speech">感谢聆听！</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="footer" aria-hidden="true">
+  <span id="page-no">01 / 19</span>
+  <div id="progress-track"><div id="progress"></div></div>
+  <span>河流光催化净化数字孪生系统</span>
+</div>
+
+<script>
+const slides = [...document.querySelectorAll(".slide")];
+const pageNo = document.getElementById("page-no");
+const progress = document.getElementById("progress");
+let index = 0;
+
+function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+function show(nextIndex){
+  index = clamp(nextIndex, 0, slides.length - 1);
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+  pageNo.textContent = `${String(index + 1).padStart(2,"0")} / ${slides.length}`;
+  progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+  history.replaceState(null, "", `#${index + 1}`);
+}
+function next(){ show(index + 1); }
+function prev(){ show(index - 1); }
+
+document.addEventListener("keydown", (event) => {
+  const key = event.key;
+  if(key === "ArrowRight" || key === "PageDown" || key === " "){
+    event.preventDefault();
+    next();
+  }else if(key === "ArrowLeft" || key === "PageUp"){
+    event.preventDefault();
+    prev();
+  }else if(key === "Home"){
+    event.preventDefault();
+    show(0);
+  }else if(key === "End"){
+    event.preventDefault();
+    show(slides.length - 1);
+  }else if(key.toLowerCase() === "f"){
+    document.documentElement.requestFullscreen?.();
+  }
+});
+
+const startSlide = Number(location.hash.replace("#",""));
+if(Number.isFinite(startSlide) && startSlide > 0) show(startSlide - 1);
+else show(0);
+
+const canvas = document.getElementById("river-bg");
+const ctx = canvas.getContext("2d");
+let w = 0;
+let h = 0;
+let particles = [];
+function resize(){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  w = innerWidth;
+  h = innerHeight;
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${h}px`;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  particles = Array.from({length:70}, () => ({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    s: .4 + Math.random() * 1.8,
+    v: .18 + Math.random() * .55,
+    a: .12 + Math.random() * .35
+  }));
+}
+addEventListener("resize", resize);
+resize();
+
+function riverY(x,t){
+  return h * .58 + Math.sin(x * .006 + t * .0011) * 80 + Math.sin(x * .013 - t * .00072) * 34;
+}
+function draw(t){
+  ctx.clearRect(0,0,w,h);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for(let layer = 0; layer < 3; layer++){
+    ctx.beginPath();
+    for(let x = -80; x <= w + 80; x += 18){
+      const y = riverY(x, t + layer * 360) + layer * 18;
+      if(x === -80) ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = layer === 0 ? "rgba(159,200,166,.24)" : layer === 1 ? "rgba(184,220,228,.20)" : "rgba(236,198,83,.15)";
+    ctx.lineWidth = layer === 0 ? 76 : layer === 1 ? 46 : 18;
+    ctx.stroke();
+  }
+  for(const p of particles){
+    p.x += p.v;
+    p.y += Math.sin((p.x + t * .02) * .02) * .22;
+    if(p.x > w + 20){
+      p.x = -20;
+      p.y = Math.random() * h;
+    }
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(159,200,166,${p.a})`;
+    ctx.arc(p.x,p.y,p.s,0,Math.PI*2);
+    ctx.fill();
+  }
+  requestAnimationFrame(draw);
+}
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){
+  draw(0);
+}else{
+  requestAnimationFrame(draw);
+}
+</script>
+</body>
+</html>

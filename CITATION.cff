@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, models, or presentation materials in your research, please cite it as below."
+title: "River Photocatalytic Purification Digital Twin System"
+abstract: "A high-fidelity digital twin simulation system for river photocatalytic purification based on Riemann slice numerical integration and first-order exponential decay kinetics."
+authors:
+  - family-names: "Liu"
+    given-names: "Pinzhuo"
+    alias: "pinzhuo0905-rgb"
+  - family-names: "Zhang"
+    given-names: "Zhiyu"
+    alias: "RavenZh-John"
+version: 1.0.0
+date-released: 2026-09-05
+license: MIT
+url: "https://floss.cc.cd/"
+repository-code: "https://github.com/pinzhuo0905-rgb/river-purification-digital-twin"
+keywords:
+  - "digital-twin"
+  - "river-purification"
+  - "photocatalysis"
+  - "riemann-sum"
+  - "exponential-decay"
+  - "pareto-optimization"
+  - "gb-3838-2002"
