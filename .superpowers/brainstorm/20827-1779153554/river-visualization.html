@@ -1,0 +1,26 @@
+<h2>河流和效果应该如何可视化？</h2>
+<p class="subtitle">这决定了我们将使用哪种图表库或绘图技术来展示河流状态和最终的最优位置</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>2D 俯视平面热力图</h3>
+      <p>将河流视为一个二维区域，使用颜色深浅表示污染物浓度，用箭头表示流向和流速，催化剂的最佳投放点会在图上明确标记。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>1D 沿程距离折线图</h3>
+      <p>只考虑沿河流方向的单维距离，使用简单的折线图展示浓度随距离或时间的指数衰减曲线。最佳位置以坐标或 X 轴上的一个点给出。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>仪表盘加数据表格</h3>
+      <p>没有具象的河流地图，纯粹以仪表盘数据、核心指标和数据表格形式，展示输入参数与各个备选位置净化效果的对比。</p>
+    </div>
+  </div>
+</div>

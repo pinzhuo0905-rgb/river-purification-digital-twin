@@ -1,0 +1,18 @@
+services:
+  river-twin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/pinzhuo0905-rgb/river-purification-digital-twin:latest
+    container_name: river-purification-digital-twin
+    ports:
+      - "80:80"
+    volumes:
+      # 持久化保存仿真场景和实验记录数据库
+      - river_data:/app/backend/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+volumes:
+  river_data:

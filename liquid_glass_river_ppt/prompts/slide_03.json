@@ -1,0 +1,42 @@
+{
+  "slide": 3,
+  "title": "为什么做这个项目：河流治理不是凭感觉就够了",
+  "prompt": "# Codex PPT Slide Image Prompt\n\n## Canvas\n{\n  \"type\": \"16:9 full-slide PowerPoint image\",\n  \"language\": \"Chinese\",\n  \"slide_number\": 3,\n  \"render_slide_number\": false\n}\n\n## Deck Goal\n生成一份 22 页苹果 Liquid Glass 高科技学术答辩 PPT，介绍基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序，并融合论文中的理论、方法、实验与工程价值。\n\n## Required Background\n{\n  \"deck_context\": {\n    \"source_summary\": \"本项目是一个河流光催化净化数字孪生系统，基于微积分切片、指数衰减、朗伯-比尔光衰减、动态 NTU 浊度反馈、流体连续性、GB 3838-2002 水质判定和帕累托优化，提供交互式河道仿真、投药策略优化和水质达标分析。\",\n    \"core_claim\": \"复杂河流治理可以先在数字孪生沙盘中被观察、计算和优化，从而把凭经验投药转化为可解释的模型决策。\",\n    \"canonical_terms\": [\n      \"微积分切片\",\n      \"指数衰减模型\",\n      \"朗伯-比尔定律\",\n      \"动态 NTU 正反馈\",\n      \"GB 3838-2002\",\n      \"帕累托前沿\",\n      \"Nelder-Mead\",\n      \"Vibe Coding\",\n      \"数字孪生\"\n    ],\n    \"paper_facts\": [\n      \"论文提出二阶指数中点法以减少高活性催化剂下的数值过冲。\",\n      \"论文强调动态浊度正反馈会造成光遮蔽和浊度锁定效应。\",\n      \"系统支持六种污染物：大分子有机物、泥沙水藻、重金属离子、石油烃类、氮磷富营养化、微塑料。\",\n      \"前端 TypeScript v4 与后端 Python v4 仿真引擎功能对等。\",\n      \"RiverCanvas 使用 11 层渲染管线表达浓度场、波纹、催化剂信标和图例。\",\n      \"苏州河工业废水场景中，N=3 逼近 I 类水阈值，N=5 的边际收益明显下降。\"\n    ]\n  }\n}\n\n## Global Style\n{\n  \"name\": \"Apple Liquid Glass 河流数字孪生学术高科技风\",\n  \"visual_direction\": \"明亮浅色水雾背景，苹果式半透明玻璃面板，柔和折射高光，蓝绿数据流，河流数字孪生、光催化粒子、学术公式和精密 HUD 结合；酷炫但不黑暗赛博。\",\n  \"color_palette\": \"misty blue-white #eef7ff / #f8fbff, Apple blue #007aff, cyan #32ade6, teal #30d5c8, mint #34c759, warning amber #ffcc00, pollution red only for risk states.\",\n  \"typography\": \"大标题使用干净有力的中文无衬线字形气质，深墨色文字，高字重；公式与数字用现代科技感数字字体；所有中文必须清晰、准确、无乱码。\",\n  \"texture_and_finish\": \"frosted glass, subtle inner highlights, soft blue shadow, thin white strokes, translucent cards, light depth, water mist and refraction.\",\n  \"deck_consistency\": \"所有页面保持相同调性、色彩、玻璃质感和科技水域语言，但按 cover、section divider、concept、formula、architecture、evidence、timeline、summary 等角色改变布局。\"\n}\n\n## Input Images\n\n- Image 1: /Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png — approved sample slide style reference; match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout\n\n\n## Slide\n{\n  \"number\": 3,\n  \"title\": \"为什么做这个项目：河流治理不是凭感觉就够了\",\n  \"role\": \"problem\",\n  \"intent\": \"说明现实痛点和项目必要性。\"\n}\n\n## Text\n{\n  \"title\": \"为什么做这个项目：河流治理不是凭感觉就够了\",\n  \"key_points\": [\n    \"复合微污染压力：有机物、重金属、微塑料等同时出现\",\n    \"真实河流里，流速、河宽、水深、光照、浊度共同影响净化效率\",\n    \"经验投药可能过量、位置不准、成本高，且效果不可预估\",\n    \"我们的目标：把治理决策变成可调参数、可视化反馈和优化建议\"\n  ],\n  \"speaker_focus\": null\n}\n\n## Layout\n{\n  \"composition\": \"左侧真实河道问题场景，右侧五个玻璃变量卡片形成决策难题矩阵。\",\n  \"content_zones\": \"左图右文；右侧卡片分两列。\",\n  \"spacing\": \"卡片之间留 16px 以上视觉间距。\"\n}\n\n## Visual Elements\n{\n  \"main_visual\": \"浑浊河流、排污点、太阳光被削弱、流速箭头混杂。\",\n  \"supporting_elements\": \"变量卡：位置、剂量、光照、流速、浊度。\"\n}\n\n## Constraints\n[\n  \"污染红只用于强调风险，整体仍保持浅色玻璃风。\"\n]\n\n## Style Reference Rule\nUse Image 1 as the approved sample-slide style reference. Match its palette, typography mood, density, texture, and overall visual identity. Do not copy its exact layout unless this slide's layout explicitly asks for it.\n\n## Input Image Handling Rules\nFor any input image marked as a strict input asset, include it visibly and preserve its content. Do not redraw, replace, relabel, or invent a similar figure. Scale and crop only as needed for composition while keeping the important labels, arrows, data, and relationships recognizable.\n\n## Universal Constraints\n- The final image itself must contain the title and key points.\n- Render Chinese text exactly and legibly; avoid garbled characters.\n- Keep the confirmed deck style consistent while varying layout by slide role.\n- No watermark, unrelated logo, or extra slide number.\n",
+  "out": "slide_03.png",
+  "input_images": [
+    {
+      "path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+      "role": "approved sample slide style reference",
+      "fidelity": "match Apple Liquid Glass palette, Chinese typography mood, transparent panels, data HUD density, river science visual language; do not copy exact layout"
+    }
+  ],
+  "requires_context_images": true,
+  "expected_backend": "built-in image tool",
+  "sample_generation_method": {
+    "backend_used": "built-in image tool",
+    "tool_name": "image_gen",
+    "mode": "generate",
+    "prompt_source": "manual approved sample prompt for Slide 10 光照与浊度",
+    "size": "16:9 landscape, built-in default",
+    "quality": "built-in default",
+    "approved_sample_path": "/Users/johnzhang/基于微积分切片思想与指数衰减模型的河流光催化净化动态仿真程序/liquid_glass_river_ppt/origin_image/slide_10.png",
+    "input_context_preparation": "local required images inspected with view_image before built-in generation; approved sample slide inspected with view_image",
+    "handoff_rule": "Use this same built-in image generation tool and generate mode; return a blocker if unavailable."
+  },
+  "generation_contract": {
+    "must_use_selected_image_backend": true,
+    "must_match_sample_generation_method": true,
+    "forbidden_final_image_methods": [
+      "local drawing/rendering scripts",
+      "Pillow-generated slides",
+      "SVG/HTML/CSS/canvas screenshots",
+      "python-pptx/PptxGenJS/native PPT layout screenshots",
+      "manually composited text/image overlays"
+    ],
+    "must_return": [
+      "backend_used",
+      "selected_source",
+      "qa_note"
+    ]
+  }
+}

@@ -1,0 +1,284 @@
+<style>
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+  .section { margin-bottom: 28px; }
+  .options { gap: 20px; }
+  .option { cursor: pointer; }
+
+  /* ── 项目结构图 ── */
+  .file-tree {
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 2;
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #a0aec0;
+    margin: 12px 0;
+  }
+  .file-tree .dir  { color: #63b3ed; font-weight: 700; }
+  .file-tree .new  { color: #68d391; }
+  .file-tree .exist{ color: #718096; }
+  .file-tree .badge{
+    font-size: 10px; padding: 1px 6px;
+    border-radius: 4px; margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-new  { background: rgba(72,187,120,0.2); color: #68d391; }
+  .badge-mod  { background: rgba(237,137,54,0.2); color: #f6ad55; }
+
+  /* ── API 表格 ── */
+  .api-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0; }
+  .api-table th {
+    text-align: left; padding: 6px 10px;
+    background: rgba(255,255,255,0.06); color: #a0aec0;
+    font-weight: 600; font-size: 11px; text-transform: uppercase;
+  }
+  .api-table td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #cbd5e0; }
+  .method {
+    font-family: 'SF Mono', monospace; font-size: 11px; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px; display: inline-block;
+  }
+  .get    { background: rgba(72,187,120,0.2); color: #68d391; }
+  .post   { background: rgba(99,179,237,0.2); color: #63b3ed; }
+  .put    { background: rgba(237,137,54,0.2); color: #f6ad55; }
+  .delete { background: rgba(245,101,101,0.2); color: #fc8181; }
+
+  /* ── UI 原型 ── */
+  .ui-proto {
+    background: #1a202c;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin: 12px 0;
+  }
+  .ui-proto-bar {
+    background: rgba(255,255,255,0.05);
+    padding: 8px 14px;
+    font-size: 11px;
+    color: #718096;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .dot-r { width:8px;height:8px;border-radius:50%;background:#fc8181;display:inline-block; }
+  .dot-y { width:8px;height:8px;border-radius:50%;background:#f6ad55;display:inline-block; }
+  .dot-g { width:8px;height:8px;border-radius:50%;background:#68d391;display:inline-block; }
+  .ui-proto-body { padding: 14px; }
+
+  /* 方案库面板原型 */
+  .mock-panel {
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .mock-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .mock-panel-title { font-size: 12px; color: #e2e8f0; font-weight: 600; }
+  .mock-btn {
+    font-size: 10px; padding: 3px 10px;
+    border-radius: 5px; border: none; cursor: default;
+    font-weight: 600;
+  }
+  .mock-btn-green { background: rgba(72,187,120,0.3); color: #68d391; }
+  .mock-btn-blue  { background: rgba(99,179,237,0.3); color: #63b3ed; }
+  .mock-scenario-item {
+    padding: 7px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    margin-bottom: 6px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .mock-scenario-name { font-size: 11px; color: #e2e8f0; font-weight: 500; }
+  .mock-scenario-meta { font-size: 10px; color: #4a5568; margin-top: 2px; }
+  .mock-scenario-actions { display: flex; gap: 4px; }
+  .mock-icon-btn {
+    width: 22px; height: 22px; border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; cursor: default;
+  }
+  .mock-input {
+    width: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; padding: 5px 8px;
+    font-size: 11px; color: #a0aec0;
+    margin-bottom: 6px;
+  }
+
+  /* 对比高亮 */
+  .highlight-box {
+    background: rgba(99,179,237,0.07);
+    border-left: 3px solid #63b3ed;
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 12px;
+    color: #a0aec0;
+    line-height: 1.7;
+  }
+  .highlight-box strong { color: #63b3ed; }
+
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: #4a5568; margin-bottom: 10px;
+  }
+</style>
+
+<h2>🗄️ 阶段 A 设计方案 — 数据持久化</h2>
+<p class="subtitle">请选择你偏好的项目结构方案（影响日后 B、C 阶段的扩展方式）</p>
+
+<div class="options">
+
+  <!-- ── 方案一（推荐）── -->
+  <div class="option" data-choice="opt1" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>✅ 集成式（推荐）：backend/ 子目录 + 一键启动</h3>
+      <p>在现有项目根目录下新建 <code>backend/</code>，用 <code>concurrently</code> 一条命令同时跑前端 Vite + 后端 Uvicorn，像现在一样 <code>npm run dev</code> 就全启动。</p>
+
+      <div class="section-label">📁 新的项目结构</div>
+      <div class="file-tree">
+<span class="dir">项目根目录/</span>
+├── <span class="exist">src/</span>　　　　　　　　<span class="exist">（前端，不动）</span>
+├── <span class="new">backend/</span>　　　　　　<span class="badge badge-new">NEW</span>
+│   ├── <span class="new">main.py</span>　　　　　<span class="badge badge-new">NEW</span>　FastAPI 入口
+│   ├── <span class="new">database.py</span>　　　<span class="badge badge-new">NEW</span>　SQLite 连接
+│   ├── <span class="new">models.py</span>　　　　<span class="badge badge-new">NEW</span>　数据表定义
+│   ├── <span class="new">schemas.py</span>　　　 <span class="badge badge-new">NEW</span>　Pydantic 验证
+│   ├── <span class="new">scenarios.db</span>　　 <span class="badge badge-new">NEW</span>　SQLite 数据文件
+│   └── <span class="new">requirements.txt</span> <span class="badge badge-new">NEW</span>
+├── <span class="exist">package.json</span>　　　　<span class="badge badge-mod">MODIFY</span>　加 concurrently
+└── <span class="exist">vite.config.ts</span>　　 <span class="badge badge-mod">MODIFY</span>　加 API 代理
+      </div>
+
+      <div class="section-label">🚀 启动方式</div>
+      <div class="file-tree" style="color:#68d391;">$ npm run dev　　　　<span style="color:#4a5568;"># 一条命令同时启动前后端</span>
+　　　　　　　　　　<span style="color:#4a5568;"># Vite: http://localhost:5173</span>
+　　　　　　　　　　<span style="color:#4a5568;"># FastAPI: http://localhost:8000</span></div>
+
+      <div class="highlight-box">
+        <strong>为什么推荐这个？</strong> Vite 的 <code>proxy</code> 配置让前端的 <code>/api/*</code> 请求自动转发到后端，开发时完全感觉不到跨域问题。阶段 B 加计算引擎、阶段 C 加 WebSocket，都在同一个 <code>backend/</code> 目录里扩展即可。
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 方案二 ── -->
+  <div class="option" data-choice="opt2" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>🔧 分离式：独立后端项目 + 两个终端</h3>
+      <p>后端作为一个完全独立的项目（甚至可以单独建一个文件夹），前后端各自手动启动。代码彼此完全解耦。</p>
+
+      <div class="section-label">📁 项目结构</div>
+      <div class="file-tree">
+<span class="dir">河流仿真前端/</span>　　（当前项目，基本不动）
+<span class="dir">河流仿真后端/</span>　　<span class="badge badge-new">NEW 独立目录</span>
+├── main.py
+├── database.py
+├── scenarios.db
+└── requirements.txt</div>
+
+      <div class="section-label">🚀 启动方式</div>
+      <div class="file-tree" style="color:#f6ad55;">终端1：$ npm run dev　<span style="color:#4a5568;"># 前端</span>
+终端2：$ uvicorn main:app --reload　<span style="color:#4a5568;"># 后端</span></div>
+
+      <div class="highlight-box" style="border-color: #f6ad55; background: rgba(237,137,54,0.07);">
+        <strong style="color:#f6ad55;">适合场景：</strong>如果你打算把后端单独部署到服务器（阶段 B/C 时），分离式天然就是对的。但本地开发时需要同时开两个终端，稍微麻烦一点。
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── 不管选哪个，以下设计都一样 ── -->
+<div class="section" style="margin-top: 28px;">
+  <div class="section-label">📡 API 设计（两个方案共用）</div>
+  <table class="api-table">
+    <tr><th>方法</th><th>路径</th><th>功能</th></tr>
+    <tr>
+      <td><span class="method get">GET</span></td>
+      <td><code>/api/scenarios</code></td>
+      <td>获取所有方案列表（可按作者过滤）</td>
+    </tr>
+    <tr>
+      <td><span class="method post">POST</span></td>
+      <td><code>/api/scenarios</code></td>
+      <td>保存当前配置（含作者名）</td>
+    </tr>
+    <tr>
+      <td><span class="method get">GET</span></td>
+      <td><code>/api/scenarios/{id}</code></td>
+      <td>加载指定方案的完整参数</td>
+    </tr>
+    <tr>
+      <td><span class="method put">PUT</span></td>
+      <td><code>/api/scenarios/{id}</code></td>
+      <td>更新方案名称/描述</td>
+    </tr>
+    <tr>
+      <td><span class="method delete">DELETE</span></td>
+      <td><code>/api/scenarios/{id}</code></td>
+      <td>删除方案</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-label">🖥️ 前端 UI 原型 — 方案库面板</div>
+  <div class="ui-proto">
+    <div class="ui-proto-bar">
+      <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+      <span style="margin-left:8px;">仿真系统 — 左侧控制面板（底部新增）</span>
+    </div>
+    <div class="ui-proto-body">
+      <div style="font-size:10px;color:#4a5568;margin-bottom:8px;">▲ 上方是现有滑块控制区（不变）</div>
+      <div class="mock-panel">
+        <div class="mock-panel-header">
+          <span class="mock-panel-title">📚 方案库</span>
+          <button class="mock-btn mock-btn-green">💾 保存当前配置</button>
+        </div>
+
+        <!-- 保存表单 -->
+        <input class="mock-input" placeholder="方案名称，如：澜沧江夏季暴雨" value="苏州河工业废水超标" readonly>
+        <input class="mock-input" placeholder="作者名" value="张同学" readonly>
+
+        <div style="margin-top:10px;margin-bottom:6px;font-size:10px;color:#4a5568;">已保存方案（3 个）</div>
+
+        <!-- 方案列表 -->
+        <div class="mock-scenario-item">
+          <div>
+            <div class="mock-scenario-name">🌊 澜沧江夏季暴雨模拟</div>
+            <div class="mock-scenario-meta">李同学 · 2026-05-25</div>
+          </div>
+          <div class="mock-scenario-actions">
+            <div class="mock-icon-btn" title="加载">📂</div>
+            <div class="mock-icon-btn" title="删除">🗑️</div>
+          </div>
+        </div>
+        <div class="mock-scenario-item" style="border: 1px solid rgba(99,179,237,0.3); background: rgba(99,179,237,0.06);">
+          <div>
+            <div class="mock-scenario-name" style="color:#63b3ed;">苏州河工业废水超标</div>
+            <div class="mock-scenario-meta">张同学 · 刚刚 ✏️ 当前</div>
+          </div>
+          <div class="mock-scenario-actions">
+            <div class="mock-icon-btn">📂</div>
+            <div class="mock-icon-btn">🗑️</div>
+          </div>
+        </div>
+        <div class="mock-scenario-item">
+          <div>
+            <div class="mock-scenario-name">☀️ 晴天低流速高催化剂</div>
+            <div class="mock-scenario-meta">王同学 · 2026-05-24</div>
+          </div>
+          <div class="mock-scenario-actions">
+            <div class="mock-icon-btn">📂</div>
+            <div class="mock-icon-btn">🗑️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
